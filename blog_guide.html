@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build a Full-Stack Blog — Step-by-Step Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@300;400;600;700;800&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #21262d;
+  --border: #30363d;
+  --vs: #007acc;
+  --react: #61dafb;
+  --pg: #4a90d9;
+  --green: #3fb950;
+  --amber: #f0a030;
+  --red: #f85149;
+  --purple: #bc8cff;
+  --pink: #ff7b72;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --dim: #484f58;
+  --code-bg: #0d1117;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.site-header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-weight: 700;
+  font-size: 1rem;
+}
+.logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--react); }
+.tabs {
+  display: flex;
+  gap: 0;
+  height: 100%;
+  align-items: flex-end;
+}
+.tab {
+  padding: .4rem 1.1rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  font-size: .8rem;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all .2s;
+  border-radius: 4px 4px 0 0;
+  white-space: nowrap;
+  background: none;
+}
+.tab.active {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+.tab:hover:not(.active) { color: var(--text); }
+.tab-dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:.4rem; }
+
+/* ── LAYOUT ─────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 54px);
+}
+
+/* ── SIDEBAR ─────────────────────────────────── */
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 54px;
+  height: calc(100vh - 54px);
+  overflow-y: auto;
+}
+.sidebar-title {
+  padding: .3rem 1.2rem .8rem;
+  font-size: .7rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.step-nav {
+  list-style: none;
+}
+.step-nav li a {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  padding: .55rem 1.2rem;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: .82rem;
+  transition: all .15s;
+  border-left: 2px solid transparent;
+}
+.step-nav li a:hover { color: var(--text); background: var(--bg3); }
+.step-nav li a.active {
+  color: var(--vs);
+  border-left-color: var(--vs);
+  background: rgba(0,122,204,.07);
+}
+.step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  font-size: .7rem;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.step-nav li a.active .step-num {
+  background: var(--vs);
+  border-color: var(--vs);
+  color: #fff;
+}
+.step-nav li a.done .step-num {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.step-nav li a.done { color: var(--green); }
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: .8rem 1.2rem;
+}
+
+/* ── MAIN ─────────────────────────────────── */
+.main {
+  padding: 2.5rem 3rem 4rem;
+  max-width: 900px;
+}
+
+/* ── HERO ─────────────────────────────────── */
+.hero {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(97,218,251,.08);
+  border: 1px solid rgba(97,218,251,.2);
+  color: var(--react);
+  font-size: .75rem;
+  font-family: 'JetBrains Mono', monospace;
+  padding: .25rem .7rem;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+}
+.hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: .8rem;
+  letter-spacing: -.02em;
+}
+.hero h1 span { color: var(--react); }
+.hero p {
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+}
+.hero-stack {
+  display: flex;
+  gap: .7rem;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .75rem;
+  border-radius: 6px;
+  font-size: .78rem;
+  font-weight: 600;
+  border: 1px solid;
+}
+.badge.vs { background: rgba(0,122,204,.1); border-color: rgba(0,122,204,.3); color: var(--vs); }
+.badge.react { background: rgba(97,218,251,.1); border-color: rgba(97,218,251,.3); color: var(--react); }
+.badge.pg { background: rgba(74,144,217,.1); border-color: rgba(74,144,217,.3); color: var(--pg); }
+.badge.node { background: rgba(63,185,80,.1); border-color: rgba(63,185,80,.3); color: var(--green); }
+
+/* ── STEP SECTION ─────────────────────────── */
+.step-section {
+  margin-bottom: 3.5rem;
+  scroll-margin-top: 70px;
+}
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.step-circle {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: .9rem;
+  flex-shrink: 0;
+  border: 2px solid;
+}
+.step-circle.vs { background: rgba(0,122,204,.15); border-color: var(--vs); color: var(--vs); }
+.step-circle.react { background: rgba(97,218,251,.12); border-color: var(--react); color: var(--react); }
+.step-circle.pg { background: rgba(74,144,217,.12); border-color: var(--pg); color: var(--pg); }
+.step-circle.node { background: rgba(63,185,80,.1); border-color: var(--green); color: var(--green); }
+.step-circle.amber { background: rgba(240,160,48,.1); border-color: var(--amber); color: var(--amber); }
+.step-circle.purple { background: rgba(188,140,255,.1); border-color: var(--purple); color: var(--purple); }
+
+.step-header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.step-sub { color: var(--muted); font-size: .85rem; }
+
+/* ── CODE BLOCK ──────────────────────────── */
+.code-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.2rem 0;
+}
+.code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .5rem .9rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.code-filename {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .78rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.code-filename span { color: var(--text); }
+.code-lang {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .7rem;
+  padding: .15rem .5rem;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--dim);
+  border: 1px solid var(--border);
+}
+.copy-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: .72rem;
+  font-family: 'JetBrains Mono', monospace;
+  padding: .2rem .6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.copy-btn:hover { background: var(--bg); color: var(--text); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+pre {
+  padding: 1.2rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .82rem;
+  line-height: 1.8;
+  tab-size: 2;
+}
+code { font-family: inherit; }
+
+/* syntax colours */
+.k { color: #ff7b72; }   /* keyword */
+.f { color: #d2a8ff; }   /* function */
+.s { color: #a5d6ff; }   /* string */
+.n { color: #79c0ff; }   /* name/var */
+.c { color: #484f58; }   /* comment */
+.v { color: #ffa657; }   /* value/num */
+.t { color: #7ee787; }   /* type/tag */
+.p { color: #e6edf3; }   /* punctuation */
+.a { color: #61dafb; }   /* attr/react */
+.sq { color: #f0883e; }  /* sql keyword */
+.sc { color: #ffd700; }  /* sql column */
+
+/* ── INFO BOXES ──────────────────────────── */
+.info-box {
+  display: flex;
+  gap: .9rem;
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+  margin: 1.2rem 0;
+  border-left: 3px solid;
+}
+.info-box.tip { background: rgba(63,185,80,.08); border-color: var(--green); }
+.info-box.note { background: rgba(0,122,204,.08); border-color: var(--vs); }
+.info-box.warn { background: rgba(240,160,48,.08); border-color: var(--amber); }
+.info-box-icon { font-size: 1rem; flex-shrink: 0; margin-top: .1rem; }
+.info-box-body { font-size: .85rem; color: var(--muted); }
+.info-box-body strong { color: var(--text); }
+
+/* ── RESULT PREVIEW ──────────────────────── */
+.preview-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 1.2rem 0;
+}
+.preview-bar {
+  background: var(--bg3);
+  padding: .5rem .9rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  border-bottom: 1px solid var(--border);
+}
+.preview-dot { width:11px; height:11px; border-radius:50%; }
+.preview-dot.r { background:#ff5f57; }
+.preview-dot.y { background:#febc2e; }
+.preview-dot.g { background:#28c840; }
+.preview-url {
+  margin-left:.5rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: .15rem .9rem;
+  font-size: .75rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  flex: 1;
+  max-width: 280px;
+}
+.preview-content {
+  background: #f6f8fa;
+  padding: 1.5rem;
+  color: #1c2128;
+  min-height: 220px;
+}
+/* fake blog preview */
+.blog-preview { font-family: 'Crimson Pro', serif; }
+.blog-preview header {
+  background: #1a1a2e;
+  color: white;
+  padding: .9rem 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  border-radius: 6px;
+}
+.blog-preview header h3 { font-size: 1.2rem; font-weight: 600; letter-spacing:.05em; }
+.blog-preview header nav a {
+  color: rgba(255,255,255,.7);
+  text-decoration: none;
+  font-size: .85rem;
+  margin-left: 1rem;
+}
+.blog-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .8rem; }
+.blog-card {
+  background: white;
+  border: 1px solid #e1e4e8;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+.blog-card-img { height: 70px; background: linear-gradient(135deg,#667eea,#764ba2); }
+.blog-card-img.g2 { background: linear-gradient(135deg,#f093fb,#f5576c); }
+.blog-card-img.g3 { background: linear-gradient(135deg,#4facfe,#00f2fe); }
+.blog-card-body { padding: .7rem; }
+.blog-card-tag {
+  font-size: .65rem;
+  background: #eef2ff;
+  color: #4f46e5;
+  padding: .1rem .4rem;
+  border-radius: 3px;
+  font-family: sans-serif;
+  font-weight: 600;
+}
+.blog-card-body h4 { font-size: .9rem; margin: .3rem 0 .2rem; font-weight: 600; color: #1c2128; }
+.blog-card-body p { font-size: .72rem; color: #6e7781; font-family: sans-serif; }
+
+/* ── FILE TREE ───────────────────────────── */
+.file-tree {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .8rem;
+  line-height: 2;
+}
+.ft-folder { color: var(--vs); }
+.ft-file-js { color: var(--amber); }
+.ft-file-jsx { color: var(--react); }
+.ft-file-sql { color: var(--pg); }
+.ft-file-env { color: var(--purple); }
+.ft-file-json { color: var(--green); }
+.ft-comment { color: var(--dim); }
+.ft-dim { color: var(--dim); }
+
+/* ── PROGRESS ────────────────────────────── */
+.progress-bar {
+  position: fixed;
+  top: 54px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--vs), var(--react));
+  z-index: 200;
+  transition: width .2s;
+}
+
+/* ── CHECKLIST ───────────────────────────── */
+.checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin: .8rem 0;
+}
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  font-size: .88rem;
+  color: var(--muted);
+}
+.checklist li::before {
+  content: '□';
+  color: var(--dim);
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: .05rem;
+}
+
+/* ── STEP FLOW ───────────────────────────── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+.flow-step {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .4rem .9rem;
+  font-size: .78rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+}
+.flow-arrow { color: var(--dim); font-size: .9rem; }
+
+/* ── INLINE CODE ─────────────────────────── */
+.ic {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: .05rem .4rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .8em;
+  color: var(--pink);
+}
+
+h3 { font-size: 1rem; font-weight: 600; margin: 1.4rem 0 .6rem; color: var(--text); }
+p { color: var(--muted); margin-bottom: .7rem; font-size: .9rem; }
+
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 3rem 0;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<header class="site-header">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Full-Stack Blog Guide
+  </div>
+  <div class="tabs">
+    <button class="tab active"><span class="tab-dot" style="background:#61dafb"></span>BlogApp.jsx</button>
+    <button class="tab"><span class="tab-dot" style="background:#f0a030"></span>server.js</button>
+    <button class="tab"><span class="tab-dot" style="background:#4a90d9"></span>schema.sql</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-title">▸ Steps</div>
+    <ul class="step-nav" id="stepNav">
+      <li><a href="#step1" class="active"><span class="step-num">1</span>Project Overview</a></li>
+      <li><a href="#step2"><span class="step-num">2</span>Folder Structure</a></li>
+      <li><a href="#step3"><span class="step-num">3</span>PostgreSQL Setup</a></li>
+      <li><a href="#step4"><span class="step-num">4</span>Backend — Express</a></li>
+      <li><a href="#step5"><span class="step-num">5</span>API Routes</a></li>
+      <li><a href="#step6"><span class="step-num">6</span>React — Setup</a></li>
+      <li><a href="#step7"><span class="step-num">7</span>Components</a></li>
+      <li><a href="#step8"><span class="step-num">8</span>Pages & Routing</a></li>
+      <li><a href="#step9"><span class="step-num">9</span>Connecting It All</a></li>
+      <li><a href="#step10"><span class="step-num">10</span>Run & Test</a></li>
+    </ul>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-title">▸ Stack</div>
+    <ul class="step-nav">
+      <li><a href="#step4" style="font-size:.78rem"><span class="step-num" style="background:rgba(240,160,48,.15);border-color:var(--amber);color:var(--amber)">⚡</span>Express + Node.js</a></li>
+      <li><a href="#step3" style="font-size:.78rem"><span class="step-num" style="background:rgba(74,144,217,.15);border-color:var(--pg);color:var(--pg)">🐘</span>PostgreSQL + pg</a></li>
+      <li><a href="#step6" style="font-size:.78rem"><span class="step-num" style="background:rgba(97,218,251,.12);border-color:var(--react);color:var(--react)">⚛</span>React + Axios</a></li>
+    </ul>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-badge">🎓 Student Guide • CSAE 104 Web Programming</div>
+      <h1>Build a <span>Full-Stack Blog</span><br>from Scratch</h1>
+      <p>A complete step-by-step walkthrough to build a working blog site using PostgreSQL, Express, React, and VS Code. Follow each step in order.</p>
+      <div class="hero-stack">
+        <span class="badge vs">{ } VS Code</span>
+        <span class="badge react">⚛ React 18</span>
+        <span class="badge pg">🐘 PostgreSQL</span>
+        <span class="badge node">⚡ Express</span>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <section class="step-section" id="step1">
+      <div class="step-header">
+        <div class="step-circle react">1</div>
+        <div>
+          <h2>Project Overview</h2>
+          <div class="step-sub">What we're building and how it works</div>
+        </div>
+      </div>
+
+      <p>We're building <strong style="color:var(--text)">TheBlog</strong> — a full-stack blog site where users can view, create, edit, and delete posts. Here's what the final app will look like:</p>
+
+      <div class="preview-card">
+        <div class="preview-bar">
+          <div class="preview-dot r"></div><div class="preview-dot y"></div><div class="preview-dot g"></div>
+          <div class="preview-url">localhost:3000</div>
+        </div>
+        <div class="preview-content">
+          <div class="blog-preview">
+            <header>
+              <h3>✏ TheBlog</h3>
+              <nav><a href="#">Home</a><a href="#">New Post</a></nav>
+            </header>
+            <div class="blog-grid">
+              <div class="blog-card"><div class="blog-card-img"></div><div class="blog-card-body"><span class="blog-card-tag">React</span><h4>Getting Started with React Hooks</h4><p>Ana Reyes • March 2025</p></div></div>
+              <div class="blog-card"><div class="blog-card-img g2"></div><div class="blog-card-body"><span class="blog-card-tag">Database</span><h4>PostgreSQL for Beginners</h4><p>Ben Cruz • March 2025</p></div></div>
+              <div class="blog-card"><div class="blog-card-img g3"></div><div class="blog-card-body"><span class="blog-card-tag">CSS</span><h4>Modern Flexbox Layouts</h4><p>Cara Lim • March 2025</p></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Architecture Overview</h3>
+      <div class="flow">
+        <div class="flow-step">React :3000</div>
+        <span class="flow-arrow">→ Axios HTTP →</span>
+        <div class="flow-step">Express :5000</div>
+        <span class="flow-arrow">→ SQL queries →</span>
+        <div class="flow-step">PostgreSQL :5432</div>
+      </div>
+
+      <h3>Features We'll Build</h3>
+      <ul class="checklist">
+        <li>View all blog posts (homepage)</li>
+        <li>Read a single post (detail page)</li>
+        <li>Create a new post (form)</li>
+        <li>Edit an existing post</li>
+        <li>Delete a post</li>
+        <li>Category/tag filtering</li>
+      </ul>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 2 -->
+    <section class="step-section" id="step2">
+      <div class="step-header">
+        <div class="step-circle vs">2</div>
+        <div>
+          <h2>Folder Structure</h2>
+          <div class="step-sub">Setting up your workspace in VS Code</div>
+        </div>
+      </div>
+
+      <p>Open VS Code and create two folders: <span class="ic">blog-client</span> (React) and <span class="ic">blog-server</span> (Express). Your final structure will look like this:</p>
+
+      <div class="file-tree">
+        <div><span class="ft-folder">📁 blog-project/</span></div>
+        <div>&nbsp;&nbsp;<span class="ft-folder">📁 blog-server/</span> <span class="ft-comment">← Express + PostgreSQL backend</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-js">📄 server.js</span> <span class="ft-comment">← main entry point</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-js">📄 db.js</span> <span class="ft-comment">← database connection pool</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-folder">📁 routes/</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-js">📄 posts.js</span> <span class="ft-comment">← all /posts API routes</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-env">📄 .env</span> <span class="ft-comment">← DB credentials (keep secret!)</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-json">📄 package.json</span></div>
+        <div>&nbsp;&nbsp;<span class="ft-folder">📁 blog-client/</span> <span class="ft-comment">← React frontend</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-folder">📁 src/</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-folder">📁 components/</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-jsx">📄 Navbar.jsx</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-jsx">📄 PostCard.jsx</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-jsx">📄 PostForm.jsx</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-folder">📁 pages/</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-jsx">📄 Home.jsx</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-jsx">📄 PostDetail.jsx</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-jsx">📄 NewPost.jsx</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-jsx">📄 EditPost.jsx</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-jsx">📄 App.jsx</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-js">📄 index.js</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-js">📄 api.js</span> <span class="ft-comment">← axios base config</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-js">📄 App.css</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ft-file-env">📄 .env</span> <span class="ft-comment">← REACT_APP_API_URL</span></div>
+      </div>
+
+      <h3>Initialize Both Projects</h3>
+      <p>Open your integrated terminal in VS Code (<span class="ic">Ctrl+`</span>) and run:</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">📟 <span>Terminal</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c"># Create the backend</span>
+<span class="f">mkdir</span> blog-project <span class="p">&&</span> <span class="f">cd</span> blog-project
+<span class="f">mkdir</span> blog-server <span class="p">&&</span> <span class="f">cd</span> blog-server
+<span class="f">npm init</span> <span class="n">-y</span>
+<span class="f">npm install</span> express pg cors dotenv
+<span class="f">npm install</span> <span class="n">--save-dev</span> nodemon
+
+<span class="c"># Create the frontend (in a new terminal)</span>
+<span class="f">cd</span> ..
+<span class="f">npx create-react-app</span> blog-client
+<span class="f">cd</span> blog-client
+<span class="f">npm install</span> axios react-router-dom</code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-icon">💡</div>
+        <div class="info-box-body"><strong>VS Code Tip:</strong> Use <strong>Split Terminal</strong> (click the split icon in the terminal panel) to run frontend and backend side by side.</div>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 3 -->
+    <section class="step-section" id="step3">
+      <div class="step-header">
+        <div class="step-circle pg">3</div>
+        <div>
+          <h2>PostgreSQL Database Setup</h2>
+          <div class="step-sub">Create the database schema and seed data</div>
+        </div>
+      </div>
+
+      <p>Open <strong style="color:var(--text)">pgAdmin</strong> or use the <strong style="color:var(--text)">PostgreSQL extension</strong> in VS Code. Create a new database named <span class="ic">blog_db</span>, then run this SQL:</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">🐘 <span>schema.sql</span> <span class="code-lang">SQL</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c">-- Create the database (run in psql or pgAdmin)</span>
+<span class="sq">CREATE DATABASE</span> blog_db;
+
+<span class="c">-- Connect to it first: \c blog_db</span>
+
+<span class="c">-- Posts table</span>
+<span class="sq">CREATE TABLE</span> <span class="sc">posts</span> (
+  <span class="sc">id</span>         <span class="t">SERIAL PRIMARY KEY</span>,
+  <span class="sc">title</span>      <span class="t">VARCHAR</span>(255) <span class="t">NOT NULL</span>,
+  <span class="sc">content</span>    <span class="t">TEXT</span> <span class="t">NOT NULL</span>,
+  <span class="sc">author</span>     <span class="t">VARCHAR</span>(100) <span class="t">NOT NULL</span>,
+  <span class="sc">category</span>   <span class="t">VARCHAR</span>(60) <span class="t">DEFAULT</span> <span class="s">'General'</span>,
+  <span class="sc">created_at</span> <span class="t">TIMESTAMP DEFAULT</span> <span class="f">NOW</span>(),
+  <span class="sc">updated_at</span> <span class="t">TIMESTAMP DEFAULT</span> <span class="f">NOW</span>()
+);
+
+<span class="c">-- Seed with sample posts</span>
+<span class="sq">INSERT INTO</span> <span class="sc">posts</span> (title, content, author, category) <span class="sq">VALUES</span>
+  (<span class="s">'Getting Started with React Hooks'</span>,
+   <span class="s">'React Hooks changed how we write components. useState and useEffect are the two most important hooks to learn first...'</span>,
+   <span class="s">'Ana Reyes'</span>, <span class="s">'React'</span>),
+  (<span class="s">'PostgreSQL for Beginners'</span>,
+   <span class="s">'PostgreSQL is the most powerful open-source database available today. Let us explore tables, queries, and more...'</span>,
+   <span class="s">'Ben Cruz'</span>, <span class="s">'Database'</span>),
+  (<span class="s">'Modern Flexbox Layouts'</span>,
+   <span class="s">'CSS Flexbox makes creating complex layouts simple. Here is everything you need to know to master it...'</span>,
+   <span class="s">'Cara Lim'</span>, <span class="s">'CSS'</span>),
+  (<span class="s">'Building REST APIs with Express'</span>,
+   <span class="s">'Express.js is a minimal and flexible Node.js framework that provides a robust set of features for web apps...'</span>,
+   <span class="s">'Dan Santos'</span>, <span class="s">'Node.js'</span>);
+
+<span class="c">-- Verify the data</span>
+<span class="sq">SELECT</span> <span class="sc">id, title, author, category, created_at</span>
+<span class="sq">FROM</span> <span class="sc">posts</span>
+<span class="sq">ORDER BY</span> <span class="sc">created_at DESC</span>;</code></pre>
+      </div>
+
+      <div class="info-box note">
+        <div class="info-box-icon">📌</div>
+        <div class="info-box-body"><strong>Using VS Code PostgreSQL Extension:</strong> Press <strong>F1</strong> → "PostgreSQL: New Query" to run SQL directly from the editor without leaving VS Code.</div>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 4 -->
+    <section class="step-section" id="step4">
+      <div class="step-header">
+        <div class="step-circle amber">4</div>
+        <div>
+          <h2>Backend — Express Server</h2>
+          <div class="step-sub">Configure the Node.js server and database connection</div>
+        </div>
+      </div>
+
+      <h3>Create the .env file</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">🔑 <span>blog-server/.env</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="n">DB_HOST</span>=localhost
+<span class="n">DB_PORT</span>=<span class="v">5432</span>
+<span class="n">DB_NAME</span>=blog_db
+<span class="n">DB_USER</span>=postgres
+<span class="n">DB_PASSWORD</span>=your_password_here
+<span class="n">PORT</span>=<span class="v">5000</span></code></pre>
+      </div>
+
+      <h3>Create the database connection — db.js</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚡ <span>blog-server/db.js</span> <span class="code-lang">JS</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">const</span> <span class="p">{</span> <span class="n">Pool</span> <span class="p">}</span> <span class="k">=</span> <span class="f">require</span>(<span class="s">'pg'</span>)
+<span class="f">require</span>(<span class="s">'dotenv'</span>).<span class="f">config</span>()
+
+<span class="k">const</span> <span class="n">pool</span> <span class="k">=</span> <span class="k">new</span> <span class="f">Pool</span>(<span class="p">{</span>
+  host:     <span class="n">process</span>.env.<span class="n">DB_HOST</span>,
+  port:     <span class="n">process</span>.env.<span class="n">DB_PORT</span>,
+  database: <span class="n">process</span>.env.<span class="n">DB_NAME</span>,
+  user:     <span class="n">process</span>.env.<span class="n">DB_USER</span>,
+  password: <span class="n">process</span>.env.<span class="n">DB_PASSWORD</span>,
+<span class="p">})</span>
+
+<span class="c">// Test the connection on startup</span>
+<span class="n">pool</span>.<span class="f">connect</span>((err, client, release) <span class="k">=></span> <span class="p">{</span>
+  <span class="k">if</span> (err) <span class="k">return</span> <span class="n">console</span>.<span class="f">error</span>(<span class="s">'❌ DB connection error:'</span>, err.message)
+  <span class="n">console</span>.<span class="f">log</span>(<span class="s">'✅ Connected to PostgreSQL: blog_db'</span>)
+  <span class="f">release</span>()
+<span class="p">})</span>
+
+<span class="n">module</span>.exports <span class="k">=</span> <span class="n">pool</span></code></pre>
+      </div>
+
+      <h3>Create the main server — server.js</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚡ <span>blog-server/server.js</span> <span class="code-lang">JS</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">const</span> <span class="n">express</span> <span class="k">=</span> <span class="f">require</span>(<span class="s">'express'</span>)
+<span class="k">const</span> <span class="n">cors</span>    <span class="k">=</span> <span class="f">require</span>(<span class="s">'cors'</span>)
+<span class="f">require</span>(<span class="s">'dotenv'</span>).<span class="f">config</span>()
+
+<span class="k">const</span> <span class="n">postsRouter</span> <span class="k">=</span> <span class="f">require</span>(<span class="s">'./routes/posts'</span>)
+
+<span class="k">const</span> <span class="n">app</span> <span class="k">=</span> <span class="f">express</span>()
+
+<span class="c">// Middleware</span>
+<span class="n">app</span>.<span class="f">use</span>(<span class="f">cors</span>())
+<span class="n">app</span>.<span class="f">use</span>(<span class="n">express</span>.<span class="f">json</span>())
+
+<span class="c">// Routes</span>
+<span class="n">app</span>.<span class="f">use</span>(<span class="s">'/api/posts'</span>, <span class="n">postsRouter</span>)
+
+<span class="c">// Health check</span>
+<span class="n">app</span>.<span class="f">get</span>(<span class="s">'/'</span>, (req, res) <span class="k">=></span> res.<span class="f">json</span>(<span class="p">{</span> message: <span class="s">'✅ Blog API is running!'</span> <span class="p">}</span>))
+
+<span class="k">const</span> <span class="n">PORT</span> <span class="k">=</span> <span class="n">process</span>.env.<span class="n">PORT</span> || <span class="v">5000</span>
+<span class="n">app</span>.<span class="f">listen</span>(<span class="n">PORT</span>, () <span class="k">=></span> <span class="n">console</span>.<span class="f">log</span>(<span class="s">`🚀 Server running on http://localhost:${PORT}`</span>))</code></pre>
+      </div>
+
+      <h3>Add nodemon script to package.json</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">📦 <span>blog-server/package.json</span> <span class="code-lang">JSON</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="p">{</span>
+  <span class="s">"scripts"</span><span class="p">: {</span>
+    <span class="s">"start"</span><span class="p">:</span>  <span class="s">"node server.js"</span><span class="p">,</span>
+    <span class="s">"dev"</span><span class="p">:</span>    <span class="s">"nodemon server.js"</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 5 -->
+    <section class="step-section" id="step5">
+      <div class="step-header">
+        <div class="step-circle pg">5</div>
+        <div>
+          <h2>API Routes — All CRUD Operations</h2>
+          <div class="step-sub">GET, POST, PUT, DELETE endpoints for blog posts</div>
+        </div>
+      </div>
+
+      <p>Create the file <span class="ic">blog-server/routes/posts.js</span> — this file handles all 5 API endpoints:</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚡ <span>blog-server/routes/posts.js</span> <span class="code-lang">JS</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">const</span> <span class="n">express</span> <span class="k">=</span> <span class="f">require</span>(<span class="s">'express'</span>)
+<span class="k">const</span> <span class="n">router</span>  <span class="k">=</span> <span class="n">express</span>.<span class="f">Router</span>()
+<span class="k">const</span> <span class="n">pool</span>    <span class="k">=</span> <span class="f">require</span>(<span class="s">'../db'</span>)
+
+<span class="c">// ── GET /api/posts ── Get all posts (newest first) ────────────</span>
+<span class="n">router</span>.<span class="f">get</span>(<span class="s">'/'</span>, <span class="k">async</span> (req, res) <span class="k">=></span> <span class="p">{</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="p">{</span> <span class="n">category</span> <span class="p">}</span> <span class="k">=</span> req.query   <span class="c">// optional filter: ?category=React</span>
+    <span class="k">let</span> <span class="n">sql</span> <span class="k">=</span> <span class="s">'SELECT * FROM posts'</span>
+    <span class="k">const</span> <span class="n">params</span> <span class="k">=</span> []
+    <span class="k">if</span> (<span class="n">category</span>) <span class="p">{</span>
+      <span class="n">sql</span> <span class="k">+=</span> <span class="s">' WHERE category = $1'</span>
+      <span class="n">params</span>.<span class="f">push</span>(<span class="n">category</span>)
+    <span class="p">}</span>
+    <span class="n">sql</span> <span class="k">+=</span> <span class="s">' ORDER BY created_at DESC'</span>
+    <span class="k">const</span> <span class="n">result</span> <span class="k">=</span> <span class="k">await</span> <span class="n">pool</span>.<span class="f">query</span>(<span class="n">sql</span>, <span class="n">params</span>)
+    res.<span class="f">json</span>(<span class="n">result</span>.rows)
+  <span class="p">}</span> <span class="k">catch</span> (err) <span class="p">{</span>
+    res.<span class="f">status</span>(<span class="v">500</span>).<span class="f">json</span>(<span class="p">{</span> error: err.message <span class="p">})</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c">// ── GET /api/posts/:id ── Get one post ────────────────────────</span>
+<span class="n">router</span>.<span class="f">get</span>(<span class="s">'/:id'</span>, <span class="k">async</span> (req, res) <span class="k">=></span> <span class="p">{</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="n">result</span> <span class="k">=</span> <span class="k">await</span> <span class="n">pool</span>.<span class="f">query</span>(
+      <span class="s">'SELECT * FROM posts WHERE id = $1'</span>, [req.params.id]
+    )
+    <span class="k">if</span> (<span class="n">result</span>.rows.<span class="n">length</span> <span class="k">===</span> <span class="v">0</span>)
+      <span class="k">return</span> res.<span class="f">status</span>(<span class="v">404</span>).<span class="f">json</span>(<span class="p">{</span> error: <span class="s">'Post not found'</span> <span class="p">})</span>
+    res.<span class="f">json</span>(<span class="n">result</span>.rows[<span class="v">0</span>])
+  <span class="p">}</span> <span class="k">catch</span> (err) <span class="p">{</span>
+    res.<span class="f">status</span>(<span class="v">500</span>).<span class="f">json</span>(<span class="p">{</span> error: err.message <span class="p">})</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c">// ── POST /api/posts ── Create a new post ──────────────────────</span>
+<span class="n">router</span>.<span class="f">post</span>(<span class="s">'/'</span>, <span class="k">async</span> (req, res) <span class="k">=></span> <span class="p">{</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="p">{</span> <span class="n">title</span>, <span class="n">content</span>, <span class="n">author</span>, <span class="n">category</span> <span class="p">}</span> <span class="k">=</span> req.body
+    <span class="k">if</span> (!<span class="n">title</span> || !<span class="n">content</span> || !<span class="n">author</span>)
+      <span class="k">return</span> res.<span class="f">status</span>(<span class="v">400</span>).<span class="f">json</span>(<span class="p">{</span> error: <span class="s">'title, content, and author are required'</span> <span class="p">})</span>
+
+    <span class="k">const</span> <span class="n">result</span> <span class="k">=</span> <span class="k">await</span> <span class="n">pool</span>.<span class="f">query</span>(
+      <span class="s">`INSERT INTO posts (title, content, author, category)
+       VALUES ($1, $2, $3, $4) RETURNING *`</span>,
+      [<span class="n">title</span>, <span class="n">content</span>, <span class="n">author</span>, <span class="n">category</span> || <span class="s">'General'</span>]
+    )
+    res.<span class="f">status</span>(<span class="v">201</span>).<span class="f">json</span>(<span class="n">result</span>.rows[<span class="v">0</span>])
+  <span class="p">}</span> <span class="k">catch</span> (err) <span class="p">{</span>
+    res.<span class="f">status</span>(<span class="v">500</span>).<span class="f">json</span>(<span class="p">{</span> error: err.message <span class="p">})</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c">// ── PUT /api/posts/:id ── Update a post ───────────────────────</span>
+<span class="n">router</span>.<span class="f">put</span>(<span class="s">'/:id'</span>, <span class="k">async</span> (req, res) <span class="k">=></span> <span class="p">{</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="p">{</span> <span class="n">title</span>, <span class="n">content</span>, <span class="n">author</span>, <span class="n">category</span> <span class="p">}</span> <span class="k">=</span> req.body
+    <span class="k">const</span> <span class="n">result</span> <span class="k">=</span> <span class="k">await</span> <span class="n">pool</span>.<span class="f">query</span>(
+      <span class="s">`UPDATE posts
+       SET title=$1, content=$2, author=$3, category=$4,
+           updated_at=NOW()
+       WHERE id=$5 RETURNING *`</span>,
+      [<span class="n">title</span>, <span class="n">content</span>, <span class="n">author</span>, <span class="n">category</span>, req.params.id]
+    )
+    <span class="k">if</span> (<span class="n">result</span>.rows.<span class="n">length</span> <span class="k">===</span> <span class="v">0</span>)
+      <span class="k">return</span> res.<span class="f">status</span>(<span class="v">404</span>).<span class="f">json</span>(<span class="p">{</span> error: <span class="s">'Post not found'</span> <span class="p">})</span>
+    res.<span class="f">json</span>(<span class="n">result</span>.rows[<span class="v">0</span>])
+  <span class="p">}</span> <span class="k">catch</span> (err) <span class="p">{</span>
+    res.<span class="f">status</span>(<span class="v">500</span>).<span class="f">json</span>(<span class="p">{</span> error: err.message <span class="p">})</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c">// ── DELETE /api/posts/:id ── Delete a post ────────────────────</span>
+<span class="n">router</span>.<span class="f">delete</span>(<span class="s">'/:id'</span>, <span class="k">async</span> (req, res) <span class="k">=></span> <span class="p">{</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="k">await</span> <span class="n">pool</span>.<span class="f">query</span>(<span class="s">'DELETE FROM posts WHERE id = $1'</span>, [req.params.id])
+    res.<span class="f">json</span>(<span class="p">{</span> message: <span class="s">'Post deleted successfully'</span> <span class="p">})</span>
+  <span class="p">}</span> <span class="k">catch</span> (err) <span class="p">{</span>
+    res.<span class="f">status</span>(<span class="v">500</span>).<span class="f">json</span>(<span class="p">{</span> error: err.message <span class="p">})</span>
+  <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="n">module</span>.exports <span class="k">=</span> <span class="n">router</span></code></pre>
+      </div>
+
+      <div class="info-box tip">
+        <div class="info-box-icon">🧪</div>
+        <div class="info-box-body"><strong>Test your API first!</strong> Start the server with <span class="ic">npm run dev</span> then open Thunder Client in VS Code (or Postman) and test: <strong>GET http://localhost:5000/api/posts</strong></div>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 6 -->
+    <section class="step-section" id="step6">
+      <div class="step-header">
+        <div class="step-circle react">6</div>
+        <div>
+          <h2>React Frontend — Setup</h2>
+          <div class="step-sub">Configure Axios, global styles, and the API helper</div>
+        </div>
+      </div>
+
+      <h3>Create the Axios helper — src/api.js</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>blog-client/src/api.js</span> <span class="code-lang">JS</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">axios</span> <span class="k">from</span> <span class="s">'axios'</span>
+
+<span class="c">// Base URL — reads from .env or defaults to localhost</span>
+<span class="k">const</span> <span class="n">api</span> <span class="k">=</span> <span class="n">axios</span>.<span class="f">create</span>(<span class="p">{</span>
+  baseURL: <span class="n">process</span>.env.<span class="n">REACT_APP_API_URL</span> || <span class="s">'http://localhost:5000/api'</span>,
+<span class="p">})</span>
+
+<span class="k">export default</span> <span class="n">api</span></code></pre>
+      </div>
+
+      <h3>Add global CSS — src/App.css</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">🎨 <span>blog-client/src/App.css</span> <span class="code-lang">CSS</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">*</span> <span class="p">{</span> <span class="n">box-sizing</span><span class="p">:</span> border-box<span class="p">;</span> margin<span class="p">:</span> <span class="v">0</span><span class="p">;</span> padding<span class="p">:</span> <span class="v">0</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="k">body</span> <span class="p">{</span>
+  <span class="n">font-family</span><span class="p">:</span> <span class="s">'Segoe UI'</span>, system-ui, sans-serif<span class="p">;</span>
+  <span class="n">background</span><span class="p">:</span> <span class="s">#f6f8fa</span><span class="p">;</span>
+  <span class="n">color</span><span class="p">:</span> <span class="s">#1c2128</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c">/* Navbar */</span>
+<span class="k">.navbar</span> <span class="p">{</span>
+  <span class="n">background</span><span class="p">:</span> <span class="s">#1a1a2e</span><span class="p">;</span>
+  <span class="n">color</span><span class="p">:</span> <span class="s">white</span><span class="p">;</span>
+  <span class="n">padding</span><span class="p">:</span> <span class="v">0 2rem</span><span class="p">;</span>
+  <span class="n">height</span><span class="p">:</span> <span class="v">60px</span><span class="p">;</span>
+  <span class="n">display</span><span class="p">:</span> flex<span class="p">;</span>
+  <span class="n">align-items</span><span class="p">:</span> center<span class="p">;</span>
+  <span class="n">justify-content</span><span class="p">:</span> space-between<span class="p">;</span>
+<span class="p">}</span>
+<span class="k">.navbar h1</span> <span class="p">{</span> <span class="n">font-size</span><span class="p">:</span> <span class="v">1.3rem</span><span class="p">;</span> <span class="n">font-weight</span><span class="p">:</span> <span class="v">700</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">.navbar a</span> <span class="p">{</span> <span class="n">color</span><span class="p">:</span> <span class="s">rgba(255,255,255,.75)</span><span class="p">;</span> text-decoration<span class="p">:</span> none<span class="p">;</span> margin-left<span class="p">:</span> <span class="v">1.5rem</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">.navbar a:hover</span> <span class="p">{</span> <span class="n">color</span><span class="p">:</span> white<span class="p">;</span> <span class="p">}</span>
+
+<span class="c">/* Layout */</span>
+<span class="k">.container</span> <span class="p">{</span> max-width<span class="p">:</span> <span class="v">1100px</span><span class="p">;</span> margin<span class="p">:</span> <span class="v">0 auto</span><span class="p">;</span> padding<span class="p">:</span> <span class="v">2rem 1.5rem</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="c">/* Post Grid */</span>
+<span class="k">.post-grid</span> <span class="p">{</span>
+  display<span class="p">:</span> grid<span class="p">;</span>
+  grid-template-columns<span class="p">:</span> <span class="f">repeat</span>(auto-fill, <span class="f">minmax</span>(<span class="v">300px</span>, <span class="v">1fr</span>))<span class="p">;</span>
+  gap<span class="p">:</span> <span class="v">1.5rem</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c">/* Post Card */</span>
+<span class="k">.post-card</span> <span class="p">{</span>
+  background<span class="p">:</span> white<span class="p">;</span>
+  border<span class="p">:</span> <span class="v">1px</span> solid <span class="s">#e1e4e8</span><span class="p">;</span>
+  border-radius<span class="p">:</span> <span class="v">12px</span><span class="p">;</span>
+  overflow<span class="p">:</span> hidden<span class="p">;</span>
+  transition<span class="p">:</span> transform .2s, box-shadow .2s<span class="p">;</span>
+  cursor<span class="p">:</span> pointer<span class="p">;</span>
+<span class="p">}</span>
+<span class="k">.post-card:hover</span> <span class="p">{</span>
+  transform<span class="p">:</span> <span class="f">translateY</span>(-4px)<span class="p">;</span>
+  box-shadow<span class="p">:</span> <span class="v">0 8px 24px</span> <span class="s">rgba(0,0,0,.08)</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">.post-card-banner</span> <span class="p">{</span> height<span class="p">:</span> <span class="v">120px</span><span class="p">;</span> background<span class="p">:</span> <span class="f">linear-gradient</span>(135deg, <span class="s">#667eea</span>, <span class="s">#764ba2</span>)<span class="p">;</span> <span class="p">}</span>
+<span class="k">.post-card-body</span> <span class="p">{</span> padding<span class="p">:</span> <span class="v">1rem 1.2rem 1.2rem</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">.post-card h3</span> <span class="p">{</span> font-size<span class="p">:</span> <span class="v">1rem</span><span class="p">;</span> font-weight<span class="p">:</span> <span class="v">600</span><span class="p">;</span> margin<span class="p">:</span> <span class="v">.5rem 0 .3rem</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">.post-card p</span> <span class="p">{</span> color<span class="p">:</span> <span class="s">#6e7781</span><span class="p">;</span> font-size<span class="p">:</span> <span class="v">.85rem</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">.category-tag</span> <span class="p">{</span>
+  display<span class="p">:</span> inline-block<span class="p">;</span>
+  background<span class="p">:</span> <span class="s">#eef2ff</span><span class="p">;</span> color<span class="p">:</span> <span class="s">#4f46e5</span><span class="p">;</span>
+  font-size<span class="p">:</span> <span class="v">.72rem</span><span class="p">;</span> font-weight<span class="p">:</span> <span class="v">600</span><span class="p">;</span>
+  padding<span class="p">:</span> <span class="v">.2rem .55rem</span><span class="p">;</span>
+  border-radius<span class="p">:</span> <span class="v">4px</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c">/* Form Styles */</span>
+<span class="k">.form-card</span> <span class="p">{</span> background<span class="p">:</span> white<span class="p">;</span> border<span class="p">:</span> <span class="v">1px</span> solid <span class="s">#e1e4e8</span><span class="p">;</span> border-radius<span class="p">:</span> <span class="v">12px</span><span class="p">;</span> padding<span class="p">:</span> <span class="v">2rem</span><span class="p">;</span> max-width<span class="p">:</span> <span class="v">640px</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">.form-group</span> <span class="p">{</span> margin-bottom<span class="p">:</span> <span class="v">1.2rem</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">label</span> <span class="p">{</span> display<span class="p">:</span> block<span class="p">;</span> font-weight<span class="p">:</span> <span class="v">600</span><span class="p">;</span> font-size<span class="p">:</span> <span class="v">.85rem</span><span class="p">;</span> margin-bottom<span class="p">:</span> <span class="v">.4rem</span><span class="p">;</span> color<span class="p">:</span> <span class="s">#374151</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">input, textarea, select</span> <span class="p">{</span>
+  width<span class="p">:</span> <span class="v">100%</span><span class="p">;</span> padding<span class="p">:</span> <span class="v">.65rem .9rem</span><span class="p">;</span>
+  border<span class="p">:</span> <span class="v">1px</span> solid <span class="s">#d0d7de</span><span class="p">;</span> border-radius<span class="p">:</span> <span class="v">8px</span><span class="p">;</span>
+  font-size<span class="p">:</span> <span class="v">.9rem</span><span class="p">;</span> font-family<span class="p">:</span> inherit<span class="p">;</span>
+  transition<span class="p">:</span> border-color .2s<span class="p">;</span>
+<span class="p">}</span>
+<span class="k">input:focus, textarea:focus</span> <span class="p">{</span> outline<span class="p">:</span> none<span class="p">;</span> border-color<span class="p">:</span> <span class="s">#4f46e5</span><span class="p">;</span> <span class="p">}</span>
+<span class="k">textarea</span> <span class="p">{</span> min-height<span class="p">:</span> <span class="v">160px</span><span class="p">;</span> resize<span class="p">:</span> vertical<span class="p">;</span> <span class="p">}</span>
+
+<span class="c">/* Buttons */</span>
+<span class="k">.btn</span> <span class="p">{</span>
+  padding<span class="p">:</span> <span class="v">.55rem 1.3rem</span><span class="p">;</span> border-radius<span class="p">:</span> <span class="v">8px</span><span class="p">;</span>
+  font-weight<span class="p">:</span> <span class="v">600</span><span class="p">;</span> font-size<span class="p">:</span> <span class="v">.88rem</span><span class="p">;</span>
+  border<span class="p">:</span> none<span class="p">;</span> cursor<span class="p">:</span> pointer<span class="p">;</span> text-decoration<span class="p">:</span> none<span class="p">;</span>
+  display<span class="p">:</span> inline-block<span class="p">;</span>
+<span class="p">}</span>
+<span class="k">.btn-primary</span> <span class="p">{</span> background<span class="p">:</span> <span class="s">#4f46e5</span><span class="p">;</span> color<span class="p">:</span> white<span class="p">;</span> <span class="p">}</span>
+<span class="k">.btn-danger</span>  <span class="p">{</span> background<span class="p">:</span> <span class="s">#dc2626</span><span class="p">;</span> color<span class="p">:</span> white<span class="p">;</span> <span class="p">}</span>
+<span class="k">.btn-ghost</span>   <span class="p">{</span> background<span class="p">:</span> <span class="s">#f3f4f6</span><span class="p">;</span> color<span class="p">:</span> <span class="s">#374151</span><span class="p">;</span> <span class="p">}</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 7 -->
+    <section class="step-section" id="step7">
+      <div class="step-header">
+        <div class="step-circle react">7</div>
+        <div>
+          <h2>React Components</h2>
+          <div class="step-sub">Navbar, PostCard, and PostForm</div>
+        </div>
+      </div>
+
+      <h3>Navbar.jsx</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>src/components/Navbar.jsx</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">React</span> <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">Link</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react-router-dom'</span>
+
+<span class="k">export default function</span> <span class="f">Navbar</span>() <span class="p">{</span>
+  <span class="k">return</span> (
+    &lt;<span class="t">nav</span> <span class="a">className</span>=<span class="s">"navbar"</span>&gt;
+      &lt;<span class="t">h1</span>&gt;✏ TheBlog&lt;/<span class="t">h1</span>&gt;
+      &lt;<span class="t">div</span>&gt;
+        &lt;<span class="n">Link</span> <span class="a">to</span>=<span class="s">"/"</span>&gt;Home&lt;/<span class="n">Link</span>&gt;
+        &lt;<span class="n">Link</span> <span class="a">to</span>=<span class="s">"/new"</span>&gt;+ New Post&lt;/<span class="n">Link</span>&gt;
+      &lt;/<span class="t">div</span>&gt;
+    &lt;/<span class="t">nav</span>&gt;
+  )
+<span class="p">}</span></code></pre>
+      </div>
+
+      <h3>PostCard.jsx</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>src/components/PostCard.jsx</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">React</span> <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">useNavigate</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react-router-dom'</span>
+
+<span class="c">// Gradient colours for card banners (cycles by post id)</span>
+<span class="k">const</span> <span class="n">GRADIENTS</span> <span class="k">=</span> [
+  <span class="s">'linear-gradient(135deg,#667eea,#764ba2)'</span>,
+  <span class="s">'linear-gradient(135deg,#f093fb,#f5576c)'</span>,
+  <span class="s">'linear-gradient(135deg,#4facfe,#00f2fe)'</span>,
+  <span class="s">'linear-gradient(135deg,#43e97b,#38f9d7)'</span>,
+  <span class="s">'linear-gradient(135deg,#fa709a,#fee140)'</span>,
+]
+
+<span class="k">export default function</span> <span class="f">PostCard</span>(<span class="p">{</span> <span class="n">post</span> <span class="p">})</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">navigate</span> <span class="k">=</span> <span class="f">useNavigate</span>()
+  <span class="k">const</span> <span class="n">gradient</span> <span class="k">=</span> <span class="n">GRADIENTS</span>[<span class="n">post</span>.id <span class="k">%</span> <span class="n">GRADIENTS</span>.length]
+  <span class="k">const</span> <span class="n">date</span> <span class="k">=</span> <span class="k">new</span> <span class="f">Date</span>(<span class="n">post</span>.created_at).<span class="f">toLocaleDateString</span>(<span class="s">'en-PH'</span>, <span class="p">{</span>
+    year: <span class="s">'numeric'</span>, month: <span class="s">'long'</span>, day: <span class="s">'numeric'</span>
+  <span class="p">})</span>
+
+  <span class="k">return</span> (
+    &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"post-card"</span> <span class="a">onClick</span>=<span class="p">{</span>() <span class="k">=></span> <span class="f">navigate</span>(<span class="s">`/posts/${post.id}`</span>)<span class="p">}</span>&gt;
+      &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"post-card-banner"</span>
+           <span class="a">style</span>=<span class="p">{{</span> background: <span class="n">gradient</span> <span class="p">}}</span> /&gt;
+      &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"post-card-body"</span>&gt;
+        &lt;<span class="t">span</span> <span class="a">className</span>=<span class="s">"category-tag"</span>&gt;<span class="p">{</span><span class="n">post</span>.category<span class="p">}</span>&lt;/<span class="t">span</span>&gt;
+        &lt;<span class="t">h3</span>&gt;<span class="p">{</span><span class="n">post</span>.title<span class="p">}</span>&lt;/<span class="t">h3</span>&gt;
+        &lt;<span class="t">p</span>&gt;By <span class="p">{</span><span class="n">post</span>.author<span class="p">}</span> · <span class="p">{</span><span class="n">date</span><span class="p">}</span>&lt;/<span class="t">p</span>&gt;
+      &lt;/<span class="t">div</span>&gt;
+    &lt;/<span class="t">div</span>&gt;
+  )
+<span class="p">}</span></code></pre>
+      </div>
+
+      <h3>PostForm.jsx — Reusable for Create & Edit</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>src/components/PostForm.jsx</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">React</span>, <span class="p">{</span> <span class="n">useState</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react'</span>
+
+<span class="k">const</span> <span class="n">CATEGORIES</span> <span class="k">=</span> [<span class="s">'General'</span>,<span class="s">'React'</span>,<span class="s">'Node.js'</span>,<span class="s">'Database'</span>,<span class="s">'CSS'</span>,<span class="s">'JavaScript'</span>]
+
+<span class="k">export default function</span> <span class="f">PostForm</span>(<span class="p">{</span> <span class="n">initial</span>, <span class="n">onSubmit</span>, <span class="n">loading</span> <span class="p">})</span> <span class="p">{</span>
+  <span class="k">const</span> [<span class="n">form</span>, <span class="n">setForm</span>] <span class="k">=</span> <span class="f">useState</span>(<span class="n">initial</span> || <span class="p">{</span>
+    title: <span class="s">''</span>, content: <span class="s">''</span>, author: <span class="s">''</span>, category: <span class="s">'General'</span>
+  <span class="p">})</span>
+
+  <span class="k">const</span> <span class="n">handleChange</span> <span class="k">=</span> e <span class="k">=></span>
+    <span class="f">setForm</span>(prev <span class="k">=></span> (<span class="p">{</span> ...prev, [e.target.name]: e.target.value <span class="p">}))</span>
+
+  <span class="k">const</span> <span class="n">handleSubmit</span> <span class="k">=</span> e <span class="k">=></span> <span class="p">{</span>
+    e.<span class="f">preventDefault</span>()
+    <span class="f">onSubmit</span>(<span class="n">form</span>)
+  <span class="p">}</span>
+
+  <span class="k">return</span> (
+    &lt;<span class="t">form</span> <span class="a">className</span>=<span class="s">"form-card"</span> <span class="a">onSubmit</span>=<span class="p">{</span><span class="n">handleSubmit</span><span class="p">}</span>&gt;
+      &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"form-group"</span>&gt;
+        &lt;<span class="t">label</span>&gt;Title&lt;/<span class="t">label</span>&gt;
+        &lt;<span class="t">input</span> <span class="a">name</span>=<span class="s">"title"</span> <span class="a">value</span>=<span class="p">{</span><span class="n">form</span>.title<span class="p">}</span>
+               <span class="a">onChange</span>=<span class="p">{</span><span class="n">handleChange</span><span class="p">}</span> <span class="a">required</span> /&gt;
+      &lt;/<span class="t">div</span>&gt;
+      &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"form-group"</span>&gt;
+        &lt;<span class="t">label</span>&gt;Author&lt;/<span class="t">label</span>&gt;
+        &lt;<span class="t">input</span> <span class="a">name</span>=<span class="s">"author"</span> <span class="a">value</span>=<span class="p">{</span><span class="n">form</span>.author<span class="p">}</span>
+               <span class="a">onChange</span>=<span class="p">{</span><span class="n">handleChange</span><span class="p">}</span> <span class="a">required</span> /&gt;
+      &lt;/<span class="t">div</span>&gt;
+      &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"form-group"</span>&gt;
+        &lt;<span class="t">label</span>&gt;Category&lt;/<span class="t">label</span>&gt;
+        &lt;<span class="t">select</span> <span class="a">name</span>=<span class="s">"category"</span> <span class="a">value</span>=<span class="p">{</span><span class="n">form</span>.category<span class="p">}</span> <span class="a">onChange</span>=<span class="p">{</span><span class="n">handleChange</span><span class="p">}</span>&gt;
+          <span class="p">{</span><span class="n">CATEGORIES</span>.<span class="f">map</span>(c <span class="k">=></span> &lt;<span class="t">option</span> <span class="a">key</span>=<span class="p">{</span>c<span class="p">}</span>&gt;<span class="p">{</span>c<span class="p">}</span>&lt;/<span class="t">option</span>&gt;)<span class="p">}</span>
+        &lt;/<span class="t">select</span>&gt;
+      &lt;/<span class="t">div</span>&gt;
+      &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"form-group"</span>&gt;
+        &lt;<span class="t">label</span>&gt;Content&lt;/<span class="t">label</span>&gt;
+        &lt;<span class="t">textarea</span> <span class="a">name</span>=<span class="s">"content"</span> <span class="a">value</span>=<span class="p">{</span><span class="n">form</span>.content<span class="p">}</span>
+                  <span class="a">onChange</span>=<span class="p">{</span><span class="n">handleChange</span><span class="p">}</span> <span class="a">required</span> /&gt;
+      &lt;/<span class="t">div</span>&gt;
+      &lt;<span class="t">button</span> <span class="a">className</span>=<span class="s">"btn btn-primary"</span> <span class="a">type</span>=<span class="s">"submit"</span> <span class="a">disabled</span>=<span class="p">{</span><span class="n">loading</span><span class="p">}</span>&gt;
+        <span class="p">{</span><span class="n">loading</span> ? <span class="s">'Saving…'</span> : <span class="s">'Save Post'</span><span class="p">}</span>
+      &lt;/<span class="t">button</span>&gt;
+    &lt;/<span class="t">form</span>&gt;
+  )
+<span class="p">}</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 8 -->
+    <section class="step-section" id="step8">
+      <div class="step-header">
+        <div class="step-circle purple">8</div>
+        <div>
+          <h2>Pages & React Router</h2>
+          <div class="step-sub">Home, PostDetail, NewPost, EditPost, and App.jsx routing</div>
+        </div>
+      </div>
+
+      <h3>Home.jsx — List all posts</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>src/pages/Home.jsx</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">React</span>, <span class="p">{</span> <span class="n">useState</span>, <span class="n">useEffect</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> <span class="n">api</span> <span class="k">from</span> <span class="s">'../api'</span>
+<span class="k">import</span> <span class="n">PostCard</span> <span class="k">from</span> <span class="s">'../components/PostCard'</span>
+
+<span class="k">const</span> <span class="n">CATS</span> <span class="k">=</span> [<span class="s">'All'</span>,<span class="s">'React'</span>,<span class="s">'Node.js'</span>,<span class="s">'Database'</span>,<span class="s">'CSS'</span>,<span class="s">'JavaScript'</span>]
+
+<span class="k">export default function</span> <span class="f">Home</span>() <span class="p">{</span>
+  <span class="k">const</span> [<span class="n">posts</span>,    <span class="n">setPosts</span>]    <span class="k">=</span> <span class="f">useState</span>([])
+  <span class="k">const</span> [<span class="n">loading</span>,  <span class="n">setLoading</span>]  <span class="k">=</span> <span class="f">useState</span>(<span class="k">true</span>)
+  <span class="k">const</span> [<span class="n">category</span>, <span class="n">setCategory</span>] <span class="k">=</span> <span class="f">useState</span>(<span class="s">'All'</span>)
+
+  <span class="f">useEffect</span>(() <span class="k">=></span> <span class="p">{</span>
+    <span class="k">const</span> <span class="n">params</span> <span class="k">=</span> <span class="n">category</span> <span class="k">!==</span> <span class="s">'All'</span> ? <span class="p">{</span> category <span class="p">}</span> : <span class="p">{}</span>
+    <span class="n">api</span>.<span class="f">get</span>(<span class="s">'/posts'</span>, <span class="p">{</span> params <span class="p">})</span>
+      .<span class="f">then</span>(res <span class="k">=></span> <span class="p">{</span> <span class="f">setPosts</span>(res.data); <span class="f">setLoading</span>(<span class="k">false</span>) <span class="p">})</span>
+      .<span class="f">catch</span>(err <span class="k">=></span> <span class="n">console</span>.<span class="f">error</span>(err))
+  <span class="p">},</span> [<span class="n">category</span>])
+
+  <span class="k">return</span> (
+    &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"container"</span>&gt;
+      &lt;<span class="t">div</span> <span class="a">style</span>=<span class="p">{{</span> display:<span class="s">'flex'</span>, gap:<span class="s">'.6rem'</span>, marginBottom:<span class="s">'2rem'</span>, flexWrap:<span class="s">'wrap'</span> <span class="p">}}</span>&gt;
+        <span class="p">{</span><span class="n">CATS</span>.<span class="f">map</span>(c <span class="k">=></span> (
+          &lt;<span class="t">button</span> <span class="a">key</span>=<span class="p">{</span>c<span class="p">}</span>
+            <span class="a">className</span>=<span class="p">{</span><span class="s">`btn ${category===c ? 'btn-primary' : 'btn-ghost'}`</span><span class="p">}</span>
+            <span class="a">onClick</span>=<span class="p">{</span>() <span class="k">=></span> <span class="f">setCategory</span>(c)<span class="p">}</span>&gt;<span class="p">{</span>c<span class="p">}</span>&lt;/<span class="t">button</span>&gt;
+        ))<span class="p">}</span>
+      &lt;/<span class="t">div</span>&gt;
+      <span class="p">{</span><span class="n">loading</span>
+        ? &lt;<span class="t">p</span>&gt;Loading posts…&lt;/<span class="t">p</span>&gt;
+        : &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"post-grid"</span>&gt;
+            <span class="p">{</span><span class="n">posts</span>.<span class="f">map</span>(p <span class="k">=></span> &lt;<span class="n">PostCard</span> <span class="a">key</span>=<span class="p">{</span>p.id<span class="p">}</span> <span class="a">post</span>=<span class="p">{</span>p<span class="p">}</span> /&gt;)<span class="p">}</span>
+          &lt;/<span class="t">div</span>&gt;
+      <span class="p">}</span>
+    &lt;/<span class="t">div</span>&gt;
+  )
+<span class="p">}</span></code></pre>
+      </div>
+
+      <h3>PostDetail.jsx — View + Delete</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>src/pages/PostDetail.jsx</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">React</span>, <span class="p">{</span> <span class="n">useState</span>, <span class="n">useEffect</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">useParams</span>, <span class="n">useNavigate</span>, <span class="n">Link</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react-router-dom'</span>
+<span class="k">import</span> <span class="n">api</span> <span class="k">from</span> <span class="s">'../api'</span>
+
+<span class="k">export default function</span> <span class="f">PostDetail</span>() <span class="p">{</span>
+  <span class="k">const</span> <span class="p">{</span> <span class="n">id</span> <span class="p">}</span>     <span class="k">=</span> <span class="f">useParams</span>()
+  <span class="k">const</span> <span class="n">navigate</span>  <span class="k">=</span> <span class="f">useNavigate</span>()
+  <span class="k">const</span> [<span class="n">post</span>, <span class="n">setPost</span>]       <span class="k">=</span> <span class="f">useState</span>(<span class="k">null</span>)
+  <span class="k">const</span> [<span class="n">loading</span>, <span class="n">setLoading</span>] <span class="k">=</span> <span class="f">useState</span>(<span class="k">true</span>)
+
+  <span class="f">useEffect</span>(() <span class="k">=></span> <span class="p">{</span>
+    <span class="n">api</span>.<span class="f">get</span>(<span class="s">`/posts/${id}`</span>)
+      .<span class="f">then</span>(res <span class="k">=></span> <span class="p">{</span> <span class="f">setPost</span>(res.data); <span class="f">setLoading</span>(<span class="k">false</span>) <span class="p">})</span>
+      .<span class="f">catch</span>(() <span class="k">=></span> <span class="f">navigate</span>(<span class="s">'/'</span>))
+  <span class="p">},</span> [<span class="n">id</span>])
+
+  <span class="k">const</span> <span class="n">handleDelete</span> <span class="k">=</span> <span class="k">async</span> () <span class="k">=></span> <span class="p">{</span>
+    <span class="k">if</span> (!<span class="f">window.confirm</span>(<span class="s">'Delete this post?'</span>)) <span class="k">return</span>
+    <span class="k">await</span> <span class="n">api</span>.<span class="f">delete</span>(<span class="s">`/posts/${id}`</span>)
+    <span class="f">navigate</span>(<span class="s">'/'</span>)
+  <span class="p">}</span>
+
+  <span class="k">if</span> (<span class="n">loading</span>) <span class="k">return</span> &lt;<span class="t">p</span> <span class="a">className</span>=<span class="s">"container"</span>&gt;Loading…&lt;/<span class="t">p</span>&gt;
+
+  <span class="k">return</span> (
+    &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"container"</span> <span class="a">style</span>=<span class="p">{{</span>maxWidth:<span class="s">'720px'</span><span class="p">}}</span>&gt;
+      &lt;<span class="t">span</span> <span class="a">className</span>=<span class="s">"category-tag"</span>&gt;<span class="p">{</span><span class="n">post</span>.category<span class="p">}</span>&lt;/<span class="t">span</span>&gt;
+      &lt;<span class="t">h1</span> <span class="a">style</span>=<span class="p">{{</span>margin:<span class="s">'1rem 0 .5rem'</span>,lineHeight:<span class="v">1.3</span><span class="p">}}</span>&gt;<span class="p">{</span><span class="n">post</span>.title<span class="p">}</span>&lt;/<span class="t">h1</span>&gt;
+      &lt;<span class="t">p</span> <span class="a">style</span>=<span class="p">{{</span>color:<span class="s">'#6e7781'</span>,marginBottom:<span class="s">'1.5rem'</span><span class="p">}}</span>&gt;
+        By <strong><span class="p">{</span><span class="n">post</span>.author<span class="p">}</span></strong> · <span class="p">{</span><span class="k">new</span> <span class="f">Date</span>(<span class="n">post</span>.created_at).<span class="f">toLocaleDateString</span>()<span class="p">}</span>
+      &lt;/<span class="t">p</span>&gt;
+      &lt;<span class="t">p</span> <span class="a">style</span>=<span class="p">{{</span>lineHeight:<span class="v">1.8</span>,marginBottom:<span class="s">'2rem'</span><span class="p">}}</span>&gt;<span class="p">{</span><span class="n">post</span>.content<span class="p">}</span>&lt;/<span class="t">p</span>&gt;
+      &lt;<span class="t">div</span> <span class="a">style</span>=<span class="p">{{</span>display:<span class="s">'flex'</span>,gap:<span class="s">'.8rem'</span><span class="p">}}</span>&gt;
+        &lt;<span class="n">Link</span> <span class="a">to</span>=<span class="p">{</span><span class="s">`/edit/${id}`</span><span class="p">}</span> <span class="a">className</span>=<span class="s">"btn btn-ghost"</span>&gt;Edit Post&lt;/<span class="n">Link</span>&gt;
+        &lt;<span class="t">button</span> <span class="a">className</span>=<span class="s">"btn btn-danger"</span> <span class="a">onClick</span>=<span class="p">{</span><span class="n">handleDelete</span><span class="p">}</span>&gt;Delete&lt;/<span class="t">button</span>&gt;
+        &lt;<span class="n">Link</span> <span class="a">to</span>=<span class="s">"/"</span> <span class="a">className</span>=<span class="s">"btn btn-ghost"</span>&gt;← Back&lt;/<span class="n">Link</span>&gt;
+      &lt;/<span class="t">div</span>&gt;
+    &lt;/<span class="t">div</span>&gt;
+  )
+<span class="p">}</span></code></pre>
+      </div>
+
+      <h3>NewPost.jsx & EditPost.jsx</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>src/pages/NewPost.jsx</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">React</span>, <span class="p">{</span> <span class="n">useState</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">useNavigate</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react-router-dom'</span>
+<span class="k">import</span> <span class="n">api</span> <span class="k">from</span> <span class="s">'../api'</span>
+<span class="k">import</span> <span class="n">PostForm</span> <span class="k">from</span> <span class="s">'../components/PostForm'</span>
+
+<span class="k">export default function</span> <span class="f">NewPost</span>() <span class="p">{</span>
+  <span class="k">const</span> <span class="n">navigate</span>          <span class="k">=</span> <span class="f">useNavigate</span>()
+  <span class="k">const</span> [<span class="n">loading</span>, <span class="n">setLoading</span>] <span class="k">=</span> <span class="f">useState</span>(<span class="k">false</span>)
+
+  <span class="k">const</span> <span class="n">handleSubmit</span> <span class="k">=</span> <span class="k">async</span> (<span class="n">formData</span>) <span class="k">=></span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="f">setLoading</span>(<span class="k">true</span>)
+      <span class="k">const</span> <span class="n">res</span> <span class="k">=</span> <span class="k">await</span> <span class="n">api</span>.<span class="f">post</span>(<span class="s">'/posts'</span>, <span class="n">formData</span>)
+      <span class="f">navigate</span>(<span class="s">`/posts/${res.data.id}`</span>)
+    <span class="p">}</span> <span class="k">catch</span> (err) <span class="p">{</span>
+      <span class="n">console</span>.<span class="f">error</span>(err); <span class="f">setLoading</span>(<span class="k">false</span>)
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> (
+    &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"container"</span>&gt;
+      &lt;<span class="t">h2</span> <span class="a">style</span>=<span class="p">{{</span>marginBottom:<span class="s">'1.5rem'</span><span class="p">}}</span>&gt;Create New Post&lt;/<span class="t">h2</span>&gt;
+      &lt;<span class="n">PostForm</span> <span class="a">onSubmit</span>=<span class="p">{</span><span class="n">handleSubmit</span><span class="p">}</span> <span class="a">loading</span>=<span class="p">{</span><span class="n">loading</span><span class="p">}</span> /&gt;
+    &lt;/<span class="t">div</span>&gt;
+  )
+<span class="p">}</span></code></pre>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>src/pages/EditPost.jsx</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">React</span>, <span class="p">{</span> <span class="n">useState</span>, <span class="n">useEffect</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">useParams</span>, <span class="n">useNavigate</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react-router-dom'</span>
+<span class="k">import</span> <span class="n">api</span> <span class="k">from</span> <span class="s">'../api'</span>
+<span class="k">import</span> <span class="n">PostForm</span> <span class="k">from</span> <span class="s">'../components/PostForm'</span>
+
+<span class="k">export default function</span> <span class="f">EditPost</span>() <span class="p">{</span>
+  <span class="k">const</span> <span class="p">{</span> <span class="n">id</span> <span class="p">}</span> <span class="k">=</span> <span class="f">useParams</span>()
+  <span class="k">const</span> <span class="n">navigate</span> <span class="k">=</span> <span class="f">useNavigate</span>()
+  <span class="k">const</span> [<span class="n">post</span>,    <span class="n">setPost</span>]    <span class="k">=</span> <span class="f">useState</span>(<span class="k">null</span>)
+  <span class="k">const</span> [<span class="n">loading</span>, <span class="n">setLoading</span>] <span class="k">=</span> <span class="f">useState</span>(<span class="k">false</span>)
+
+  <span class="f">useEffect</span>(() <span class="k">=></span> <span class="p">{</span>
+    <span class="n">api</span>.<span class="f">get</span>(<span class="s">`/posts/${id}`</span>).<span class="f">then</span>(res <span class="k">=></span> <span class="f">setPost</span>(res.data))
+  <span class="p">},</span> [<span class="n">id</span>])
+
+  <span class="k">const</span> <span class="n">handleSubmit</span> <span class="k">=</span> <span class="k">async</span> (<span class="n">formData</span>) <span class="k">=></span> <span class="p">{</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="f">setLoading</span>(<span class="k">true</span>)
+      <span class="k">await</span> <span class="n">api</span>.<span class="f">put</span>(<span class="s">`/posts/${id}`</span>, <span class="n">formData</span>)
+      <span class="f">navigate</span>(<span class="s">`/posts/${id}`</span>)
+    <span class="p">}</span> <span class="k">catch</span> (err) <span class="p">{</span>
+      <span class="n">console</span>.<span class="f">error</span>(err); <span class="f">setLoading</span>(<span class="k">false</span>)
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> (!<span class="n">post</span>) <span class="k">return</span> &lt;<span class="t">p</span> <span class="a">className</span>=<span class="s">"container"</span>&gt;Loading…&lt;/<span class="t">p</span>&gt;
+
+  <span class="k">return</span> (
+    &lt;<span class="t">div</span> <span class="a">className</span>=<span class="s">"container"</span>&gt;
+      &lt;<span class="t">h2</span> <span class="a">style</span>=<span class="p">{{</span>marginBottom:<span class="s">'1.5rem'</span><span class="p">}}</span>&gt;Edit Post&lt;/<span class="t">h2</span>&gt;
+      &lt;<span class="n">PostForm</span> <span class="a">initial</span>=<span class="p">{</span><span class="n">post</span><span class="p">}</span> <span class="a">onSubmit</span>=<span class="p">{</span><span class="n">handleSubmit</span><span class="p">}</span> <span class="a">loading</span>=<span class="p">{</span><span class="n">loading</span><span class="p">}</span> /&gt;
+    &lt;/<span class="t">div</span>&gt;
+  )
+<span class="p">}</span></code></pre>
+      </div>
+
+      <h3>App.jsx — Wire up all routes</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">⚛ <span>src/App.jsx</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">import</span> <span class="n">React</span> <span class="k">from</span> <span class="s">'react'</span>
+<span class="k">import</span> <span class="p">{</span> <span class="n">BrowserRouter</span>, <span class="n">Routes</span>, <span class="n">Route</span> <span class="p">}</span> <span class="k">from</span> <span class="s">'react-router-dom'</span>
+<span class="k">import</span> <span class="s">'./App.css'</span>
+<span class="k">import</span> <span class="n">Navbar</span>     <span class="k">from</span> <span class="s">'./components/Navbar'</span>
+<span class="k">import</span> <span class="n">Home</span>       <span class="k">from</span> <span class="s">'./pages/Home'</span>
+<span class="k">import</span> <span class="n">PostDetail</span> <span class="k">from</span> <span class="s">'./pages/PostDetail'</span>
+<span class="k">import</span> <span class="n">NewPost</span>    <span class="k">from</span> <span class="s">'./pages/NewPost'</span>
+<span class="k">import</span> <span class="n">EditPost</span>   <span class="k">from</span> <span class="s">'./pages/EditPost'</span>
+
+<span class="k">export default function</span> <span class="f">App</span>() <span class="p">{</span>
+  <span class="k">return</span> (
+    &lt;<span class="n">BrowserRouter</span>&gt;
+      &lt;<span class="n">Navbar</span> /&gt;
+      &lt;<span class="n">Routes</span>&gt;
+        &lt;<span class="n">Route</span> <span class="a">path</span>=<span class="s">"/"</span>         <span class="a">element</span>=<span class="p">{</span>&lt;<span class="n">Home</span>       /&gt;<span class="p">}</span> /&gt;
+        &lt;<span class="n">Route</span> <span class="a">path</span>=<span class="s">"/posts/:id"</span> <span class="a">element</span>=<span class="p">{</span>&lt;<span class="n">PostDetail</span> /&gt;<span class="p">}</span> /&gt;
+        &lt;<span class="n">Route</span> <span class="a">path</span>=<span class="s">"/new"</span>       <span class="a">element</span>=<span class="p">{</span>&lt;<span class="n">NewPost</span>    /&gt;<span class="p">}</span> /&gt;
+        &lt;<span class="n">Route</span> <span class="a">path</span>=<span class="s">"/edit/:id"</span>  <span class="a">element</span>=<span class="p">{</span>&lt;<span class="n">EditPost</span>   /&gt;<span class="p">}</span> /&gt;
+      &lt;/<span class="n">Routes</span>&gt;
+    &lt;/<span class="n">BrowserRouter</span>&gt;
+  )
+<span class="p">}</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 9 -->
+    <section class="step-section" id="step9">
+      <div class="step-header">
+        <div class="step-circle node">9</div>
+        <div>
+          <h2>Connecting It All</h2>
+          <div class="step-sub">Add .env to React and configure CORS</div>
+        </div>
+      </div>
+
+      <h3>Frontend .env</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">🔑 <span>blog-client/.env</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="n">REACT_APP_API_URL</span>=http://localhost:5000/api</code></pre>
+      </div>
+
+      <div class="info-box warn">
+        <div class="info-box-icon">⚠️</div>
+        <div class="info-box-body"><strong>Important:</strong> React environment variables MUST start with <strong>REACT_APP_</strong>. After editing <code>.env</code>, restart the dev server with <span class="ic">npm start</span>.</div>
+      </div>
+
+      <h3>Add CORS to your Express server</h3>
+      <p>Your <span class="ic">server.js</span> already includes <span class="ic">app.use(cors())</span>. This allows React (port 3000) to call Express (port 5000) without browser errors.</p>
+
+      <h3>Update package.json scripts (backend)</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">📦 <span>blog-server/package.json</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="p">{</span>
+  <span class="s">"scripts"</span><span class="p">: {</span>
+    <span class="s">"start"</span><span class="p">:</span> <span class="s">"node server.js"</span><span class="p">,</span>
+    <span class="s">"dev"</span><span class="p">:</span>   <span class="s">"nodemon server.js"</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- STEP 10 -->
+    <section class="step-section" id="step10">
+      <div class="step-header">
+        <div class="step-circle react">10</div>
+        <div>
+          <h2>Run & Test the App</h2>
+          <div class="step-sub">Start both servers and verify everything works</div>
+        </div>
+      </div>
+
+      <p>Open <strong style="color:var(--text)">two terminals</strong> in VS Code (<span class="ic">Ctrl+`</span> then the split terminal button):</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">📟 <span>Terminal 1 — Backend</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="f">cd</span> blog-server
+<span class="f">npm run dev</span>
+
+<span class="c"># You should see:</span>
+<span class="c"># 🚀 Server running on http://localhost:5000</span>
+<span class="c"># ✅ Connected to PostgreSQL: blog_db</span></code></pre>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-filename">📟 <span>Terminal 2 — Frontend</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="f">cd</span> blog-client
+<span class="f">npm start</span>
+
+<span class="c"># Browser opens at http://localhost:3000</span>
+<span class="c"># You should see your TheBlog homepage!</span></code></pre>
+      </div>
+
+      <h3>Test Each Feature</h3>
+      <ul class="checklist">
+        <li>Open <span class="ic">localhost:3000</span> — see the 4 seed posts in a grid</li>
+        <li>Click a post card — reads the detail page with Edit & Delete buttons</li>
+        <li>Click "+ New Post" in Navbar — fill the form and save → redirects to the new post</li>
+        <li>Click "Edit Post" on a detail page — update and save</li>
+        <li>Click "Delete" — confirms and redirects to homepage</li>
+        <li>Click category filter buttons (React, CSS…) — list filters instantly</li>
+        <li>Test the API directly: <span class="ic">GET http://localhost:5000/api/posts</span></li>
+      </ul>
+
+      <div class="info-box tip">
+        <div class="info-box-icon">🏆</div>
+        <div class="info-box-body"><strong>Bonus Challenge:</strong> Try adding a <strong>search bar</strong> that filters posts by title using a <code>WHERE title ILIKE '%search%'</code> query in PostgreSQL. Or add a <strong>read time</strong> estimate based on word count!</div>
+      </div>
+
+      <div class="info-box note">
+        <div class="info-box-icon">📖</div>
+        <div class="info-box-body">
+          <strong>API Reference — All Endpoints</strong><br><br>
+          <code>GET &nbsp;&nbsp;/api/posts</code> — List all posts (add <code>?category=React</code> to filter)<br>
+          <code>GET &nbsp;&nbsp;/api/posts/:id</code> — Get one post<br>
+          <code>POST &nbsp;/api/posts</code> — Create post (body: title, content, author, category)<br>
+          <code>PUT &nbsp;&nbsp;/api/posts/:id</code> — Update post<br>
+          <code>DELETE /api/posts/:id</code> — Delete post
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// Progress bar
+window.addEventListener('scroll', () => {
+  const doc = document.documentElement
+  const pct = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100
+  document.getElementById('progressBar').style.width = pct + '%'
+})
+
+// Sidebar active link
+const links = document.querySelectorAll('.step-nav a[href^="#"]')
+const sections = [...document.querySelectorAll('.step-section')]
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = '#' + e.target.id
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === id))
+    }
+  })
+}, { threshold: 0.3, rootMargin: '-60px 0px -40% 0px' })
+sections.forEach(s => observer.observe(s))
+
+// Copy code
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre')
+  const text = pre.innerText
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!'
+    btn.classList.add('copied')
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied') }, 1800)
+  })
+}
+</script>
+</body>
+</html>

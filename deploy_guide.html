@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deploy Your Blog — GitHub, Render & Vercel Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0c10;
+  --bg2:      #13161e;
+  --bg3:      #1c2030;
+  --bg4:      #252a3a;
+  --border:   #2a3050;
+  --border2:  #3a4060;
+
+  --gh:       #f0f6ff;
+  --gh-green: #238636;
+  --gh-blue:  #58a6ff;
+
+  --render:   #46e3b7;
+  --vercel:   #ffffff;
+  --git:      #f05033;
+
+  --green:    #3fb950;
+  --amber:    #e3b341;
+  --blue:     #58a6ff;
+  --purple:   #d2a8ff;
+  --pink:     #ff7b72;
+  --cyan:     #79c0ff;
+
+  --text:     #e6edf3;
+  --muted:    #7d8590;
+  --dim:      #3d444d;
+
+  --progress: linear-gradient(90deg, #f05033, #58a6ff, #46e3b7);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── PROGRESS BAR ─────────────────────────── */
+#prog {
+  position: fixed; top: 0; left: 0;
+  height: 3px; width: 0;
+  background: var(--progress);
+  z-index: 999;
+  transition: width .15s linear;
+}
+
+/* ── HEADER ─────────────────────────────────── */
+.hdr {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,12,16,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  height: 52px;
+  display: flex; align-items: center;
+  padding: 0 1.5rem;
+  gap: 1rem;
+}
+.hdr-logo {
+  display: flex; align-items: center; gap: .5rem;
+  font-weight: 700; font-size: .95rem;
+  white-space: nowrap;
+}
+.git-icon {
+  width: 26px; height: 26px;
+  background: var(--git);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 900; color: white;
+}
+.hdr-pills {
+  display: flex; gap: .5rem; margin-left: auto;
+}
+.hdr-pill {
+  padding: .2rem .75rem;
+  border-radius: 20px;
+  font-size: .72rem; font-weight: 600;
+  border: 1px solid;
+}
+.pill-git    { background: rgba(240,80,51,.1);  border-color: rgba(240,80,51,.35);  color: var(--git); }
+.pill-render { background: rgba(70,227,183,.08); border-color: rgba(70,227,183,.3);  color: var(--render); }
+.pill-vercel { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); color: var(--vercel); }
+
+/* ── LAYOUT ─────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 255px 1fr;
+  min-height: calc(100vh - 52px);
+}
+
+/* ── SIDEBAR ─────────────────────────────────── */
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 1.25rem 0 2rem;
+  position: sticky; top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+}
+.sb-section { padding: .2rem 1rem .6rem; font-size: .68rem; font-family: 'JetBrains Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: .5rem; }
+.nav-list { list-style: none; }
+.nav-list a {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .48rem 1rem;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: .82rem;
+  border-left: 2px solid transparent;
+  transition: all .15s;
+}
+.nav-list a:hover { color: var(--text); background: var(--bg3); }
+.nav-list a.active { color: var(--blue); border-left-color: var(--blue); background: rgba(88,166,255,.06); }
+.nav-list a.done { color: var(--green); }
+.nav-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border2);
+  font-size: .68rem; font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-list a.active .nav-num { background: var(--blue); border-color: var(--blue); color: #000; }
+.nav-list a.done .nav-num { background: var(--green); border-color: var(--green); color: #000; }
+
+.sb-divider { height: 1px; background: var(--border); margin: .7rem 1rem; }
+
+/* ── MAIN ─────────────────────────────────── */
+.main { padding: 2.5rem 2.8rem 5rem; max-width: 880px; }
+
+/* ── HERO ─────────────────────────────────── */
+.hero {
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2.8rem;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: rgba(88,166,255,.08);
+  border: 1px solid rgba(88,166,255,.2);
+  color: var(--blue);
+  font-size: .72rem; font-family: 'JetBrains Mono', monospace;
+  padding: .2rem .75rem; border-radius: 20px;
+  margin-bottom: 1rem;
+}
+.hero h1 {
+  font-size: 2.35rem; font-weight: 800;
+  line-height: 1.2; letter-spacing: -.03em;
+  margin-bottom: .75rem;
+}
+.hero h1 .git-c  { color: var(--git); }
+.hero h1 .rend-c { color: var(--render); }
+.hero h1 .verc-c { color: #aaa; }
+.hero-sub { color: var(--muted); font-size: .95rem; max-width: 580px; margin-bottom: 1.5rem; }
+
+.deploy-flow {
+  display: flex; align-items: center; gap: .6rem;
+  flex-wrap: wrap; margin-top: 1rem;
+}
+.df-node {
+  padding: .4rem 1rem;
+  border-radius: 8px;
+  font-size: .8rem; font-weight: 600;
+  border: 1px solid;
+}
+.df-node.local  { background: rgba(125,192,255,.08); border-color: rgba(125,192,255,.25); color: var(--cyan); }
+.df-node.git    { background: rgba(240,80,51,.1);    border-color: rgba(240,80,51,.3);    color: var(--git); }
+.df-node.render { background: rgba(70,227,183,.08);  border-color: rgba(70,227,183,.25);  color: var(--render); }
+.df-node.vercel { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.15); color: #ccc; }
+.df-arrow { color: var(--dim); font-size: 1.1rem; }
+
+/* ── STEP SECTION ─────────────────────────── */
+.step { scroll-margin-top: 65px; margin-bottom: 3rem; }
+.step-hdr { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.step-badge {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .9rem;
+  border: 2px solid; flex-shrink: 0;
+}
+.sb-git    { background: rgba(240,80,51,.12);   border-color: var(--git);    color: var(--git); }
+.sb-gh     { background: rgba(88,166,255,.1);   border-color: var(--blue);   color: var(--blue); }
+.sb-render { background: rgba(70,227,183,.1);   border-color: var(--render); color: var(--render); }
+.sb-vercel { background: rgba(255,255,255,.06); border-color: #888;          color: #ccc; }
+.sb-green  { background: rgba(63,185,80,.1);    border-color: var(--green);  color: var(--green); }
+.sb-amber  { background: rgba(227,179,65,.1);   border-color: var(--amber);  color: var(--amber); }
+
+.step-hdr h2 { font-size: 1.3rem; font-weight: 700; letter-spacing: -.015em; }
+.step-hdr .sub { font-size: .82rem; color: var(--muted); margin-top: .15rem; }
+
+/* ── CODE ─────────────────────────────────── */
+.code-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+.code-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .45rem .9rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  gap: .5rem;
+}
+.code-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .75rem; color: var(--muted);
+  display: flex; align-items: center; gap: .4rem;
+}
+.code-label strong { color: var(--text); }
+.lang-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .68rem; padding: .12rem .45rem; border-radius: 4px;
+  background: var(--bg); border: 1px solid var(--border); color: var(--dim);
+}
+.copy-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .7rem; padding: .18rem .55rem;
+  border: 1px solid var(--border); border-radius: 4px;
+  background: none; color: var(--muted); cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--bg); color: var(--text); }
+.copy-btn.ok { color: var(--green); border-color: var(--green); }
+pre {
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .81rem; line-height: 1.85;
+}
+
+/* ── SYNTAX ─────────── */
+.k  { color: #ff7b72; }
+.f  { color: #d2a8ff; }
+.s  { color: #a5d6ff; }
+.n  { color: #79c0ff; }
+.c  { color: #484f58; font-style: italic; }
+.v  { color: #ffa657; }
+.t  { color: #7ee787; }
+.cm { color: var(--render); }
+.cy { color: var(--cyan); }
+.am { color: var(--amber); }
+.ok-line { color: var(--green); }
+.err-line { color: var(--pink); }
+
+/* ── CALLOUT BOXES ─────────────────────────── */
+.callout {
+  display: flex; gap: .9rem;
+  padding: 1rem 1.1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border-left: 3px solid;
+  font-size: .85rem;
+}
+.callout.tip  { background: rgba(63,185,80,.07);   border-color: var(--green); }
+.callout.note { background: rgba(88,166,255,.07);  border-color: var(--blue); }
+.callout.warn { background: rgba(227,179,65,.07);  border-color: var(--amber); }
+.callout.stop { background: rgba(255,123,114,.07); border-color: var(--pink); }
+.callout-icon { flex-shrink: 0; font-size: 1rem; margin-top: .1rem; }
+.callout-body { color: var(--muted); }
+.callout-body strong { color: var(--text); display: block; margin-bottom: .25rem; }
+.callout-body code {
+  background: var(--bg3); border: 1px solid var(--border);
+  padding: .05rem .35rem; border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: .8em; color: var(--pink);
+}
+
+/* ── CHECKLIST ─────────────────────────────── */
+.checklist { list-style: none; display: flex; flex-direction: column; gap: .35rem; margin: .7rem 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: .65rem;
+  font-size: .87rem; color: var(--muted);
+  padding: .35rem .7rem;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
+}
+.checklist li::before { content: '☐'; color: var(--dim); flex-shrink: 0; font-size: .9rem; }
+
+/* ── PLATFORM CARDS ────────────────────────── */
+.platform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+.plat-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem 1.3rem;
+  transition: border-color .2s;
+}
+.plat-card:hover { border-color: var(--border2); }
+.plat-name { font-weight: 700; font-size: .95rem; margin-bottom: .3rem; }
+.plat-sub  { font-size: .8rem; color: var(--muted); line-height: 1.5; }
+.plat-tag  { display: inline-block; font-size: .7rem; font-weight: 600; padding: .15rem .55rem; border-radius: 4px; margin-top: .5rem; }
+
+/* ── FILE TREE ─────────────────────────────── */
+.ftree {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 9px; padding: 1rem 1.2rem;
+  font-family: 'JetBrains Mono', monospace; font-size: .79rem; line-height: 1.9;
+  margin: 1rem 0;
+}
+.ff  { color: var(--blue); }
+.fj  { color: var(--amber); }
+.fenv { color: var(--purple); }
+.fg  { color: var(--pink); }
+.fc  { color: var(--dim); font-style: italic; }
+.fd  { color: var(--dim); }
+
+/* ── STEP FLOW ─────────────────────────────── */
+.flow { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; margin: .8rem 0; }
+.flow-box {
+  padding: .3rem .8rem; border-radius: 6px;
+  font-size: .77rem; font-weight: 500;
+  border: 1px solid var(--border); background: var(--bg3); color: var(--text);
+}
+.flow-arr { color: var(--dim); font-size: .85rem; }
+
+/* ── SCREENSHOT MOCK ────────────────────────── */
+.mock-browser {
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  margin: 1.2rem 0;
+}
+.mock-bar {
+  background: var(--bg3); padding: .45rem .9rem;
+  display: flex; align-items: center; gap: .5rem;
+  border-bottom: 1px solid var(--border);
+}
+.mock-dot { width: 11px; height: 11px; border-radius: 50%; }
+.mock-url {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 5px;
+  padding: .12rem .9rem; font-size: .74rem; font-family: 'JetBrains Mono', monospace;
+  color: var(--muted); flex: 1; max-width: 360px;
+}
+.mock-body {
+  background: var(--bg); padding: 1.5rem;
+  min-height: 120px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── SECTION DIVIDER ────────────────────────── */
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+/* ── IC (inline code) ───────────────────────── */
+.ic {
+  background: var(--bg3); border: 1px solid var(--border);
+  padding: .04rem .38rem; border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace; font-size: .8em; color: var(--pink);
+}
+
+h3 { font-size: .98rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .55rem; }
+p  { font-size: .88rem; color: var(--muted); margin-bottom: .65rem; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 10px; }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.step { animation: fadeUp .4s ease both; }
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo">
+    <div class="git-icon">G</div>
+    Deploy Your Blog
+  </div>
+  <div class="hdr-pills">
+    <span class="hdr-pill pill-git">Git</span>
+    <span class="hdr-pill pill-render">Render</span>
+    <span class="hdr-pill pill-vercel">Vercel</span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">▸ Deployment Steps</div>
+    <ul class="nav-list" id="navList">
+      <li><a href="#s1" class="active"><span class="nav-num">1</span>Overview & Prerequisites</a></li>
+      <li><a href="#s2"><span class="nav-num">2</span>Create GitHub Repos</a></li>
+      <li><a href="#s3"><span class="nav-num">3</span>Git Init — Backend</a></li>
+      <li><a href="#s4"><span class="nav-num">4</span>Git Init — Frontend</a></li>
+      <li><a href="#s5"><span class="nav-num">5</span>Push Code to GitHub</a></li>
+      <li><a href="#s6"><span class="nav-num">6</span>Deploy Backend on Render</a></li>
+      <li><a href="#s7"><span class="nav-num">7</span>Provision PostgreSQL on Render</a></li>
+      <li><a href="#s8"><span class="nav-num">8</span>Deploy Frontend on Vercel</a></li>
+      <li><a href="#s9"><span class="nav-num">9</span>Update Environment Variables</a></li>
+      <li><a href="#s10"><span class="nav-num">10</span>Test Your Live Site</a></li>
+    </ul>
+    <div class="sb-divider"></div>
+    <div class="sb-section">▸ Free Platforms</div>
+    <ul class="nav-list">
+      <li><a href="#s3" style="font-size:.78rem"><span class="nav-num" style="background:rgba(240,80,51,.12);border-color:var(--git);color:var(--git)">⎇</span>GitHub</a></li>
+      <li><a href="#s6" style="font-size:.78rem"><span class="nav-num" style="background:rgba(70,227,183,.08);border-color:var(--render);color:var(--render)">⚡</span>Render (API + DB)</a></li>
+      <li><a href="#s8" style="font-size:.78rem"><span class="nav-num" style="background:rgba(255,255,255,.05);border-color:#666;color:#aaa">▲</span>Vercel (React)</a></li>
+    </ul>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow">🚀 Deployment Guide • CSAE 104 Web Programming</div>
+      <h1>Deploy Your Blog<br>with <span class="git-c">GitHub</span>,
+        <span class="rend-c">Render</span> &amp; <span class="verc-c">Vercel</span></h1>
+      <p class="hero-sub">Take your blog from <strong style="color:var(--text)">localhost</strong> to a live public URL — completely free. Follow each step to push your code, host your API + database, and deploy your React frontend.</p>
+      <div class="deploy-flow">
+        <div class="df-node local">💻 Your Code</div>
+        <span class="df-arrow">→</span>
+        <div class="df-node git">⎇ GitHub</div>
+        <span class="df-arrow">→</span>
+        <div class="df-node render">⚡ Render (API + DB)</div>
+        <span class="df-arrow">→</span>
+        <div class="df-node vercel">▲ Vercel (React)</div>
+      </div>
+    </div>
+
+    <!-- ── STEP 1 ─────────────────────────────── -->
+    <section class="step" id="s1">
+      <div class="step-hdr">
+        <div class="step-badge sb-gh">1</div>
+        <div>
+          <h2>Overview &amp; Prerequisites</h2>
+          <div class="sub">What you need before you start</div>
+        </div>
+      </div>
+
+      <p>Before deploying, make sure your blog project is working locally. You need accounts on three free platforms:</p>
+
+      <div class="platform-row">
+        <div class="plat-card">
+          <div class="plat-name" style="color:var(--git)">⎇ GitHub</div>
+          <div class="plat-sub">Hosts your source code. Render and Vercel both connect directly to your GitHub repos to auto-deploy on every push.</div>
+          <span class="plat-tag" style="background:rgba(240,80,51,.1);color:var(--git);border:1px solid rgba(240,80,51,.3)">github.com — Free</span>
+        </div>
+        <div class="plat-card">
+          <div class="plat-name" style="color:var(--render)">⚡ Render</div>
+          <div class="plat-sub">Hosts your Express API and PostgreSQL database. Free tier includes 750 hrs/month of hosting.</div>
+          <span class="plat-tag" style="background:rgba(70,227,183,.08);color:var(--render);border:1px solid rgba(70,227,183,.3)">render.com — Free Tier</span>
+        </div>
+        <div class="plat-card">
+          <div class="plat-name" style="color:#ccc">▲ Vercel</div>
+          <div class="plat-sub">Hosts your React frontend. Deploys automatically from GitHub. Gives you a custom <code style="font-size:.78rem;background:var(--bg3);padding:.1rem .3rem;border-radius:3px;">.vercel.app</code> URL.</div>
+          <span class="plat-tag" style="background:rgba(255,255,255,.05);color:#bbb;border:1px solid rgba(255,255,255,.15)">vercel.com — Free Hobby Plan</span>
+        </div>
+        <div class="plat-card">
+          <div class="plat-name" style="color:var(--cyan)">🛠 VS Code + Git</div>
+          <div class="plat-sub">Make sure Git is installed on your computer. Check with <code style="font-size:.78rem;background:var(--bg3);padding:.1rem .3rem;border-radius:3px;">git --version</code> in your terminal.</div>
+          <span class="plat-tag" style="background:rgba(125,192,255,.08);color:var(--cyan);border:1px solid rgba(125,192,255,.25)">git-scm.com — Free</span>
+        </div>
+      </div>
+
+      <h3>Prerequisite Checklist</h3>
+      <ul class="checklist">
+        <li>Blog site works on <span class="ic">localhost:3000</span> (React) and <span class="ic">localhost:5000</span> (Express)</li>
+        <li>Account created at <strong style="color:var(--text)">github.com</strong></li>
+        <li>Account created at <strong style="color:var(--render)">render.com</strong></li>
+        <li>Account created at <strong style="color:#ccc">vercel.com</strong></li>
+        <li>Git installed — run <span class="ic">git --version</span> to confirm</li>
+        <li>VS Code integrated terminal is working (<span class="ic">Ctrl+`</span>)</li>
+      </ul>
+
+      <div class="callout note">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><strong>Sign up with your GitHub account</strong> on both Render and Vercel — this makes linking your repos much easier and avoids extra steps.</div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 2 ─────────────────────────────── -->
+    <section class="step" id="s2">
+      <div class="step-hdr">
+        <div class="step-badge sb-git">2</div>
+        <div>
+          <h2>Create Two GitHub Repositories</h2>
+          <div class="sub">One for the backend, one for the frontend</div>
+        </div>
+      </div>
+
+      <p>Go to <strong style="color:var(--text)">github.com</strong> and create two new repositories. Keep them <strong style="color:var(--text)">public</strong> (free tier).</p>
+
+      <div class="mock-browser">
+        <div class="mock-bar">
+          <div class="mock-dot" style="background:#ff5f57"></div>
+          <div class="mock-dot" style="background:#febc2e"></div>
+          <div class="mock-dot" style="background:#28c840"></div>
+          <div class="mock-url">github.com/new</div>
+        </div>
+        <div class="mock-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;width:100%">
+            <div style="background:var(--bg2);border:2px solid rgba(240,80,51,.4);border-radius:10px;padding:1.1rem">
+              <div style="font-size:.7rem;font-family:'JetBrains Mono',monospace;color:var(--git);margin-bottom:.4rem">REPO 1 — BACKEND</div>
+              <div style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.35rem">blog-server</div>
+              <div style="font-size:.78rem;color:var(--muted)">Your Express + Node.js API</div>
+              <div style="margin-top:.6rem;font-size:.72rem;color:var(--dim)">☐ Public &nbsp; ☐ Add README</div>
+            </div>
+            <div style="background:var(--bg2);border:2px solid rgba(70,227,183,.35);border-radius:10px;padding:1.1rem">
+              <div style="font-size:.7rem;font-family:'JetBrains Mono',monospace;color:var(--render);margin-bottom:.4rem">REPO 2 — FRONTEND</div>
+              <div style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.35rem">blog-client</div>
+              <div style="font-size:.78rem;color:var(--muted)">Your React application</div>
+              <div style="margin-top:.6rem;font-size:.72rem;color:var(--dim)">☐ Public &nbsp; ☐ Add README</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Steps to Create a Repo on GitHub</h3>
+      <div class="flow">
+        <div class="flow-box">1. Click "+" top-right</div><span class="flow-arr">→</span>
+        <div class="flow-box">2. "New repository"</div><span class="flow-arr">→</span>
+        <div class="flow-box">3. Enter repo name</div><span class="flow-arr">→</span>
+        <div class="flow-box">4. Set Public</div><span class="flow-arr">→</span>
+        <div class="flow-box">5. ✓ Add README</div><span class="flow-arr">→</span>
+        <div class="flow-box">6. "Create repository"</div>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body"><strong>Do NOT check "Add .gitignore"</strong> on GitHub when creating the repo — you'll add your own .gitignore locally in the next step to avoid conflicts.</div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 3 ─────────────────────────────── -->
+    <section class="step" id="s3">
+      <div class="step-hdr">
+        <div class="step-badge sb-git">3</div>
+        <div>
+          <h2>Initialize Git — Backend (blog-server)</h2>
+          <div class="sub">Set up .gitignore, commit, and link to GitHub</div>
+        </div>
+      </div>
+
+      <p>Open VS Code and navigate to your <span class="ic">blog-server</span> folder in the terminal.</p>
+
+      <h3>First, create a .gitignore file</h3>
+      <p>This prevents sensitive files (like your <span class="ic">.env</span>) and heavy folders (like <span class="ic">node_modules</span>) from being uploaded to GitHub.</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">🔒 <strong>blog-server/.gitignore</strong></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c"># Dependencies — never commit these (huge folder)</span>
+node_modules/
+
+<span class="c"># Environment variables — NEVER commit (contains passwords!)</span>
+.env
+
+<span class="c"># OS junk</span>
+.DS_Store
+Thumbs.db
+
+<span class="c"># Logs</span>
+*.log
+npm-debug.log*</code></pre>
+      </div>
+
+      <div class="callout stop">
+        <div class="callout-icon">🔴</div>
+        <div class="callout-body"><strong>Never commit your .env file!</strong> It contains your database password. The <code>.gitignore</code> above prevents this — always double-check before pushing.</div>
+      </div>
+
+      <h3>Initialize and push to GitHub</h3>
+      <p>Copy your GitHub repo URL — it looks like <span class="ic">https://github.com/YOUR-USERNAME/blog-server.git</span></p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">📟 <strong>Terminal — inside blog-server/</strong> <span class="lang-badge">bash</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c"># Step 1 — Initialize a new Git repository</span>
+<span class="f">git</span> init
+
+<span class="c"># Step 2 — Stage all files (excluding .gitignore'd ones)</span>
+<span class="f">git</span> add .
+
+<span class="c"># Step 3 — Make your first commit</span>
+<span class="f">git</span> commit <span class="n">-m</span> <span class="s">"Initial commit: Express blog API"</span>
+
+<span class="c"># Step 4 — Rename the default branch to 'main'</span>
+<span class="f">git</span> branch <span class="n">-M</span> main
+
+<span class="c"># Step 5 — Link to your GitHub repo (replace with YOUR URL)</span>
+<span class="f">git</span> remote add origin https://github.com/YOUR-USERNAME/blog-server.git
+
+<span class="c"># Step 6 — Push to GitHub</span>
+<span class="f">git</span> push <span class="n">-u</span> origin main</code></pre>
+      </div>
+
+      <h3>Verify it worked</h3>
+      <p>Visit <span class="ic">github.com/YOUR-USERNAME/blog-server</span> — you should see your files listed (but no <span class="ic">.env</span> or <span class="ic">node_modules</span>).</p>
+
+      <div class="ftree">
+        <div><span class="ff">📁 blog-server</span> <span class="fc">← on GitHub</span></div>
+        <div>&nbsp;&nbsp;<span class="fj">📄 server.js</span> <span class="fc">✓ uploaded</span></div>
+        <div>&nbsp;&nbsp;<span class="fj">📄 db.js</span> <span class="fc">✓ uploaded</span></div>
+        <div>&nbsp;&nbsp;<span class="ff">📁 routes/</span> <span class="fc">✓ uploaded</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fj">📄 posts.js</span> <span class="fc">✓ uploaded</span></div>
+        <div>&nbsp;&nbsp;<span class="fj">📄 package.json</span> <span class="fc">✓ uploaded</span></div>
+        <div>&nbsp;&nbsp;<span class="fg">📄 .gitignore</span> <span class="fc">✓ uploaded</span></div>
+        <div>&nbsp;&nbsp;<span class="fenv">📄 .env</span> <span class="fc">← NOT uploaded (hidden by .gitignore) ✓</span></div>
+        <div>&nbsp;&nbsp;<span class="fd">📁 node_modules/</span> <span class="fc">← NOT uploaded ✓</span></div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 4 ─────────────────────────────── -->
+    <section class="step" id="s4">
+      <div class="step-hdr">
+        <div class="step-badge sb-git">4</div>
+        <div>
+          <h2>Initialize Git — Frontend (blog-client)</h2>
+          <div class="sub">Push your React app to its own GitHub repository</div>
+        </div>
+      </div>
+
+      <p><code>create-react-app</code> actually initializes Git automatically — but you still need to connect it to your GitHub repo.</p>
+
+      <h3>Check if Git is already initialized</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">📟 <strong>Terminal — inside blog-client/</strong></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c"># Check if .git folder exists already</span>
+<span class="f">ls</span> <span class="n">-la</span>
+
+<span class="c"># If you see a .git folder, skip 'git init'</span>
+<span class="c"># If not, run: git init</span></code></pre>
+      </div>
+
+      <h3>Update .gitignore (already created by CRA, but verify)</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">🔒 <strong>blog-client/.gitignore</strong> <span class="fc">(CRA creates this — just confirm these lines exist)</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c"># CRA adds these — make sure they're present</span>
+node_modules/
+build/
+.env
+.env.local
+.env.production
+.DS_Store</code></pre>
+      </div>
+
+      <h3>Commit and push to GitHub</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">📟 <strong>Terminal — inside blog-client/</strong> <span class="lang-badge">bash</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c"># If CRA already committed, you may only need steps 4-6</span>
+
+<span class="c"># Stage any uncommitted changes</span>
+<span class="f">git</span> add .
+<span class="f">git</span> commit <span class="n">-m</span> <span class="s">"Initial commit: React blog client"</span>
+
+<span class="c"># Rename branch to main (if needed)</span>
+<span class="f">git</span> branch <span class="n">-M</span> main
+
+<span class="c"># Link to your GitHub repo</span>
+<span class="f">git</span> remote add origin https://github.com/YOUR-USERNAME/blog-client.git
+
+<span class="c"># Push to GitHub</span>
+<span class="f">git</span> push <span class="n">-u</span> origin main</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><strong>Use VS Code's Source Control panel</strong> (Ctrl+Shift+G) to see which files are staged, unstaged, and committed. It gives a visual view of your Git status without typing commands.</div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 5 ─────────────────────────────── -->
+    <section class="step" id="s5">
+      <div class="step-hdr">
+        <div class="step-badge sb-gh">5</div>
+        <div>
+          <h2>Making Future Updates (Git Push Workflow)</h2>
+          <div class="sub">The 3-command workflow you'll use every time you update your code</div>
+        </div>
+      </div>
+
+      <p>Every time you make changes to your code and want to update GitHub (and auto-deploy), follow this workflow:</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">📟 <strong>The standard Git push workflow</strong> <span class="lang-badge">bash</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c"># 1. Check what files changed</span>
+<span class="f">git</span> status
+
+<span class="c"># 2. Stage your changes (. means all files)</span>
+<span class="f">git</span> add .
+
+<span class="c"># 3. Write a descriptive commit message</span>
+<span class="f">git</span> commit <span class="n">-m</span> <span class="s">"Fix: add category filter to posts API"</span>
+
+<span class="c"># 4. Push to GitHub (Render & Vercel auto-redeploy!)</span>
+<span class="f">git</span> push</code></pre>
+      </div>
+
+      <h3>Essential Git Commands Reference</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">📖 <strong>Git Cheatsheet</strong></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="f">git status</span>          <span class="c"># see changed/staged files</span>
+<span class="f">git add</span> .            <span class="c"># stage all changes</span>
+<span class="f">git add</span> &lt;filename&gt;   <span class="c"># stage one file</span>
+<span class="f">git commit</span> <span class="n">-m</span> <span class="s">"msg"</span>  <span class="c"># save a snapshot</span>
+<span class="f">git push</span>             <span class="c"># upload to GitHub</span>
+<span class="f">git pull</span>             <span class="c"># download latest changes</span>
+<span class="f">git log</span> <span class="n">--oneline</span>    <span class="c"># see commit history</span>
+<span class="f">git diff</span>             <span class="c"># see what changed (not staged)</span>
+<span class="f">git restore</span> .        <span class="c"># undo unstaged changes</span></code></pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">🌟</div>
+        <div class="callout-body"><strong>Good commit messages matter!</strong> Write messages like <code>"Add: post edit functionality"</code> or <code>"Fix: 404 error on post delete"</code> — not just <code>"changes"</code>. Your future self will thank you.</div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 6 ─────────────────────────────── -->
+    <section class="step" id="s6">
+      <div class="step-hdr">
+        <div class="step-badge sb-render">6</div>
+        <div>
+          <h2>Deploy Backend on Render</h2>
+          <div class="sub">Host your Express API as a Web Service</div>
+        </div>
+      </div>
+
+      <p>Go to <strong style="color:var(--render)">render.com</strong> and log in with your GitHub account. Click <strong style="color:var(--text)">"New +"</strong> → <strong style="color:var(--text)">"Web Service"</strong>.</p>
+
+      <h3>Step-by-step on Render</h3>
+
+      <div class="flow" style="flex-direction:column;align-items:flex-start;gap:.6rem">
+        <div style="display:flex;align-items:center;gap:.8rem;width:100%">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--render);color:#000;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+          <div style="font-size:.88rem;color:var(--muted)">Click <strong style="color:var(--text)">"New +"</strong> in the top menu → select <strong style="color:var(--text)">"Web Service"</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;width:100%">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--render);color:#000;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+          <div style="font-size:.88rem;color:var(--muted)">Select <strong style="color:var(--text)">"Build and deploy from a Git repository"</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;width:100%">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--render);color:#000;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+          <div style="font-size:.88rem;color:var(--muted)">Connect your GitHub account → find and select <strong style="color:var(--git)">blog-server</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;width:100%">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--render);color:#000;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
+          <div style="font-size:.88rem;color:var(--muted)">Fill in the configuration settings (see below)</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem;width:100%">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--render);color:#000;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">5</div>
+          <div style="font-size:.88rem;color:var(--muted)">Scroll down → click <strong style="color:var(--text)">"Create Web Service"</strong></div>
+        </div>
+      </div>
+
+      <h3>Configuration Settings</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">⚙️ <strong>Render Web Service Settings</strong></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="n">Name:</span>             blog-server
+<span class="n">Region:</span>           Singapore <span class="c">(closest to the Philippines)</span>
+<span class="n">Branch:</span>           main
+<span class="n">Root Directory:</span>   <span class="c">(leave blank)</span>
+<span class="n">Runtime:</span>          Node
+<span class="n">Build Command:</span>    npm install
+<span class="n">Start Command:</span>    node server.js
+<span class="n">Plan:</span>             Free</code></pre>
+      </div>
+
+      <div class="callout note">
+        <div class="callout-icon">📌</div>
+        <div class="callout-body"><strong>Add Environment Variables on Render.</strong> After creating the service, go to the <strong>Environment</strong> tab and add your variables — do NOT use your local database yet (you'll create a Render PostgreSQL in Step 7).</div>
+      </div>
+
+      <h3>After deployment — note your API URL</h3>
+      <p>Render will give you a URL like:</p>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">🌐 <strong>Your Live API URL</strong></div>
+        </div>
+        <pre><code><span class="ok-line">https://blog-server-xxxx.onrender.com</span>
+
+<span class="c"># Test it — open this in your browser:</span>
+https://blog-server-xxxx.onrender.com/api/posts</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body"><strong>Free tier note:</strong> Render's free Web Services <strong>spin down after 15 minutes of inactivity</strong>. The first request after sleeping takes ~30 seconds. This is normal for free tier. Paid plans don't have this limit.</div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 7 ─────────────────────────────── -->
+    <section class="step" id="s7">
+      <div class="step-hdr">
+        <div class="step-badge sb-render">7</div>
+        <div>
+          <h2>Provision PostgreSQL on Render</h2>
+          <div class="sub">Create a free cloud database and connect it to your API</div>
+        </div>
+      </div>
+
+      <p>Your local PostgreSQL won't be accessible from the internet. Create a new <strong style="color:var(--render)">PostgreSQL database on Render</strong> for free.</p>
+
+      <h3>Create a PostgreSQL instance</h3>
+      <div class="flow" style="flex-direction:column;align-items:flex-start;gap:.6rem">
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--pg, #4a90d9);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+          <div style="font-size:.88rem;color:var(--muted)">In Render dashboard: <strong style="color:var(--text)">"New +"</strong> → <strong style="color:var(--text)">"PostgreSQL"</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--pg, #4a90d9);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+          <div style="font-size:.88rem;color:var(--muted)">Name: <strong style="color:var(--text)">blog-db</strong> · Region: <strong style="color:var(--text)">Singapore</strong> · Plan: <strong style="color:var(--text)">Free</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--pg, #4a90d9);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+          <div style="font-size:.88rem;color:var(--muted)">Click <strong style="color:var(--text)">"Create Database"</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--pg, #4a90d9);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
+          <div style="font-size:.88rem;color:var(--muted)">Wait for status to show <span style="color:var(--green)">● Available</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--pg, #4a90d9);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">5</div>
+          <div style="font-size:.88rem;color:var(--muted)">Copy the <strong style="color:var(--text)">Connection Details</strong> (shown on the DB info page)</div>
+        </div>
+      </div>
+
+      <h3>Add DB credentials to your Render Web Service</h3>
+      <p>Go to your <strong style="color:var(--render)">blog-server</strong> Web Service → <strong>Environment</strong> tab → Add Environment Variables:</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">🔑 <strong>Render — Environment Variables</strong> (from your DB info page)</div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="n">DB_HOST</span>     = <span class="s">dpg-xxxxxx.singapore-postgres.render.com</span>
+<span class="n">DB_PORT</span>     = <span class="v">5432</span>
+<span class="n">DB_NAME</span>     = <span class="s">blog_db</span>
+<span class="n">DB_USER</span>     = <span class="s">blog_db_user</span>
+<span class="n">DB_PASSWORD</span> = <span class="s">your-render-generated-password</span>
+<span class="n">PORT</span>        = <span class="v">5000</span></code></pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body"><strong>Internal vs External URL:</strong> Use the <strong>Internal Database URL</strong> for DB_HOST (faster, no data transfer cost). Render auto-connects services within the same region.</div>
+      </div>
+
+      <h3>Create your tables in the cloud database</h3>
+      <p>Use the Render database's <strong style="color:var(--text)">PSQL Command</strong> (shown in the DB info page) to run your schema. Or install the VS Code PostgreSQL extension and connect with the <strong>External Connection String</strong>.</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">📟 <strong>Run schema via PSQL (copy the command from Render)</strong> <span class="lang-badge">bash</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c"># Render provides a command like this — copy & paste it from your DB page:</span>
+PGPASSWORD=your-password <span class="f">psql</span> <span class="n">-h</span> dpg-xxx.singapore-postgres.render.com \
+  <span class="n">-U</span> blog_db_user <span class="n">-d</span> blog_db <span class="n">-f</span> schema.sql
+
+<span class="c"># OR paste this SQL manually into the Render "PSQL Console":</span>
+<span class="sq">CREATE TABLE</span> posts (
+  id         <span class="t">SERIAL PRIMARY KEY</span>,
+  title      <span class="t">VARCHAR</span>(255) <span class="t">NOT NULL</span>,
+  content    <span class="t">TEXT NOT NULL</span>,
+  author     <span class="t">VARCHAR</span>(100) <span class="t">NOT NULL</span>,
+  category   <span class="t">VARCHAR</span>(60) <span class="t">DEFAULT</span> <span class="s">'General'</span>,
+  created_at <span class="t">TIMESTAMP DEFAULT</span> <span class="f">NOW</span>(),
+  updated_at <span class="t">TIMESTAMP DEFAULT</span> <span class="f">NOW</span>()
+);</code></pre>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 8 ─────────────────────────────── -->
+    <section class="step" id="s8">
+      <div class="step-hdr">
+        <div class="step-badge sb-vercel">8</div>
+        <div>
+          <h2>Deploy React Frontend on Vercel</h2>
+          <div class="sub">Get your blog's UI live at a public URL in minutes</div>
+        </div>
+      </div>
+
+      <p>Go to <strong style="color:#ccc">vercel.com</strong> and log in with GitHub. Vercel will automatically detect your React app and configure everything.</p>
+
+      <h3>Import your blog-client repo</h3>
+      <div class="flow" style="flex-direction:column;align-items:flex-start;gap:.6rem">
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:#333;color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+          <div style="font-size:.88rem;color:var(--muted)">Click <strong style="color:var(--text)">"Add New…"</strong> → <strong style="color:var(--text)">"Project"</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:#333;color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+          <div style="font-size:.88rem;color:var(--muted)">Click <strong style="color:var(--text)">"Import"</strong> next to <strong style="color:var(--git)">blog-client</strong> from your GitHub list</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:#333;color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+          <div style="font-size:.88rem;color:var(--muted)">Vercel detects React automatically → Framework: <strong style="color:var(--text)">Create React App</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:#333;color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
+          <div style="font-size:.88rem;color:var(--muted)">Expand <strong style="color:var(--text)">"Environment Variables"</strong> → add <span class="ic">REACT_APP_API_URL</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.8rem">
+          <div style="width:28px;height:28px;border-radius:50%;background:#333;color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">5</div>
+          <div style="font-size:.88rem;color:var(--muted)">Click <strong style="color:var(--text)">"Deploy"</strong> 🚀</div>
+        </div>
+      </div>
+
+      <h3>Environment Variable to add on Vercel</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">🔑 <strong>Vercel — Environment Variables</strong></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="n">Name:</span>   REACT_APP_API_URL
+<span class="n">Value:</span>  https://blog-server-xxxx.onrender.com/api
+
+<span class="c"># Replace with YOUR actual Render Web Service URL from Step 6</span></code></pre>
+      </div>
+
+      <h3>Your Vercel deployment URL</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">🌐 <strong>Live URLs after deployment</strong></div>
+        </div>
+        <pre><code><span class="ok-line">✓ Frontend: https://blog-client-xxxx.vercel.app</span>
+<span class="ok-line">✓ API:      https://blog-server-xxxx.onrender.com/api/posts</span>
+
+<span class="c"># Vercel also creates preview URLs for every git push:</span>
+<span class="c"># https://blog-client-git-main-username.vercel.app</span></code></pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">🎉</div>
+        <div class="callout-body"><strong>Auto-deploy is on by default!</strong> Every time you <code>git push</code> to your <code>main</code> branch on GitHub, Vercel automatically rebuilds and redeploys your frontend within ~1 minute.</div>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 9 ─────────────────────────────── -->
+    <section class="step" id="s9">
+      <div class="step-hdr">
+        <div class="step-badge sb-amber">9</div>
+        <div>
+          <h2>Update Environment Variables</h2>
+          <div class="sub">Make sure all URLs point to production, not localhost</div>
+        </div>
+      </div>
+
+      <p>Now that both services are live, double-check that every URL is pointing to the deployed services — not <span class="ic">localhost</span>.</p>
+
+      <h3>Summary of all environment variables</h3>
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">📋 <strong>Complete Environment Variable Reference</strong></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="c">── RENDER (blog-server Web Service — Environment tab) ─────────</span>
+<span class="n">DB_HOST</span>     = dpg-xxxxxx.singapore-postgres.render.com
+<span class="n">DB_PORT</span>     = <span class="v">5432</span>
+<span class="n">DB_NAME</span>     = blog_db
+<span class="n">DB_USER</span>     = blog_db_user
+<span class="n">DB_PASSWORD</span> = &lt;from Render DB page&gt;
+<span class="n">PORT</span>        = <span class="v">5000</span>
+
+<span class="c">── VERCEL (blog-client — Settings → Environment Variables) ────</span>
+<span class="n">REACT_APP_API_URL</span> = https://blog-server-xxxx.onrender.com/api</code></pre>
+      </div>
+
+      <h3>Update CORS in your Express server</h3>
+      <p>Your Express server needs to allow requests from your Vercel URL. Update <span class="ic">server.js</span>:</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">⚡ <strong>blog-server/server.js</strong> — update CORS <span class="lang-badge">JS</span></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="k">const</span> <span class="n">cors</span> <span class="k">=</span> <span class="f">require</span>(<span class="s">'cors'</span>)
+
+<span class="c">// Allow requests from both localhost (dev) and Vercel (production)</span>
+<span class="n">app</span>.<span class="f">use</span>(<span class="f">cors</span>(<span class="p">{</span>
+  origin: [
+    <span class="s">'http://localhost:3000'</span>,
+    <span class="s">'https://blog-client-xxxx.vercel.app'</span>,   <span class="c">// ← your Vercel URL</span>
+    <span class="s">'https://your-custom-domain.com'</span>          <span class="c">// ← optional custom domain</span>
+  ],
+  methods: [<span class="s">'GET'</span>, <span class="s">'POST'</span>, <span class="s">'PUT'</span>, <span class="s">'DELETE'</span>],
+  credentials: <span class="k">true</span>
+<span class="p">}))</span></code></pre>
+      </div>
+
+      <p>Then push the CORS change to GitHub — Render will auto-redeploy:</p>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">📟 <strong>Terminal — inside blog-server/</strong></div>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="f">git</span> add server.js
+<span class="f">git</span> commit <span class="n">-m</span> <span class="s">"Update CORS to allow Vercel frontend"</span>
+<span class="f">git</span> push</code></pre>
+      </div>
+    </section>
+
+    <hr>
+
+    <!-- ── STEP 10 ─────────────────────────────── -->
+    <section class="step" id="s10">
+      <div class="step-hdr">
+        <div class="step-badge sb-green">10</div>
+        <div>
+          <h2>Test Your Live Site!</h2>
+          <div class="sub">Verify everything is working end-to-end in production</div>
+        </div>
+      </div>
+
+      <p>Open your Vercel URL in a browser and run through this checklist:</p>
+
+      <ul class="checklist">
+        <li>Homepage loads and shows blog posts from the database</li>
+        <li>Category filter buttons work (React, CSS, etc.)</li>
+        <li>Clicking a post opens the detail page with full content</li>
+        <li>"+  New Post" form submits and creates a post in the cloud database</li>
+        <li>Edit post updates the content and redirects back</li>
+        <li>Delete post removes it and redirects to homepage</li>
+        <li>Open your API URL directly: <span class="ic">https://blog-server-xxxx.onrender.com/api/posts</span></li>
+        <li>Share the Vercel URL with a classmate — it works for them too!</li>
+      </ul>
+
+      <h3>Common Issues & Fixes</h3>
+
+      <div class="code-wrap">
+        <div class="code-bar">
+          <div class="code-label">🔧 <strong>Troubleshooting Guide</strong></div>
+        </div>
+        <pre><code><span class="err-line">❌ "Cannot GET /api/posts" — 404 error</span>
+<span class="c">   → Check Render logs: Dashboard → blog-server → Logs tab</span>
+<span class="c">   → Confirm Start Command is: node server.js</span>
+
+<span class="err-line">❌ CORS error in browser console</span>
+<span class="c">   → Add your Vercel URL to the CORS origin array in server.js</span>
+<span class="c">   → Push the change and wait for Render to redeploy</span>
+
+<span class="err-line">❌ "DB connection error: password authentication failed"</span>
+<span class="c">   → Recheck DB_PASSWORD env var in Render — no spaces around "="</span>
+<span class="c">   → Copy-paste directly from Render DB info page</span>
+
+<span class="err-line">❌ Posts not loading on Vercel (blank page or error)</span>
+<span class="c">   → Check REACT_APP_API_URL in Vercel Environment Variables</span>
+<span class="c">   → Redeploy: Vercel Dashboard → Deployments → Redeploy</span>
+
+<span class="err-line">❌ First API request takes ~30 seconds</span>
+<span class="c">   → Normal on free tier — Render spins down idle services</span>
+<span class="c">   → Second request onwards is fast</span>
+
+<span class="ok-line">✓ To see real-time server logs:</span>
+<span class="c">   Render Dashboard → blog-server → Logs</span>
+
+<span class="ok-line">✓ To redeploy manually:</span>
+<span class="c">   Render → blog-server → Manual Deploy → Deploy latest commit</span></code></pre>
+      </div>
+
+      <h3>🎓 You're Live! Share Your Blog</h3>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.4rem 1.6rem;margin-top:1rem">
+        <div style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.6rem">Your deployed blog URLs:</div>
+        <div style="display:flex;flex-direction:column;gap:.55rem">
+          <div style="display:flex;align-items:center;gap:.7rem">
+            <span style="font-size:.75rem;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.05);border:1px solid var(--border2);padding:.1rem .5rem;border-radius:4px;color:#aaa">FRONTEND</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--cyan)">https://blog-client-xxxx.vercel.app</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.7rem">
+            <span style="font-size:.75rem;font-family:'JetBrains Mono',monospace;background:rgba(70,227,183,.08);border:1px solid rgba(70,227,183,.25);padding:.1rem .5rem;border-radius:4px;color:var(--render)">API</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--render)">https://blog-server-xxxx.onrender.com/api/posts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout tip" style="margin-top:1.2rem">
+        <div class="callout-icon">🚀</div>
+        <div class="callout-body">
+          <strong>Bonus: Add a custom domain!</strong> Both Vercel and Render support custom domains on free tier. If you have a domain (e.g., from Namecheap or Freenom), you can add it in <strong>Vercel → Project → Settings → Domains</strong>.
+        </div>
+      </div>
+
+      <div class="callout note" style="margin-top:.8rem">
+        <div class="callout-icon">📖</div>
+        <div class="callout-body">
+          <strong>Workflow from here on:</strong> Whenever you update your blog code — just run <code>git add . → git commit -m "message" → git push</code>. Both Render (backend) and Vercel (frontend) will <strong>automatically redeploy</strong> within 1–2 minutes.
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// Progress bar
+window.addEventListener('scroll', () => {
+  const el = document.documentElement
+  const pct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100
+  document.getElementById('prog').style.width = pct + '%'
+})
+
+// Active nav link
+const navLinks = [...document.querySelectorAll('#navList a[href^="#"]')]
+const steps    = [...document.querySelectorAll('.step')]
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = '#' + e.target.id
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === id))
+    }
+  })
+}, { threshold: 0.25, rootMargin: '-55px 0px -40% 0px' })
+steps.forEach(s => obs.observe(s))
+
+// Copy code
+function copyCode(btn) {
+  const pre  = btn.closest('.code-wrap').querySelector('pre')
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = '✓ Copied!'
+    btn.classList.add('ok')
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok') }, 1800)
+  })
+}
+</script>
+</body>
+</html>
