@@ -225,6 +225,10 @@ nav {
   0%, 100% { transform: translateY(0) scale(1); opacity: .4; }
   50%       { transform: translateY(-18px) scale(1.05); opacity: .6; }
 }
+.card-new  .card-banner { background: linear-gradient(135deg, #0d2137 0%, #0a2020 100%); }
+.card-new  .card-tag    { background: rgba(70,227,183,.1); border: 1px solid rgba(70,227,183,.25); color: #46e3b7; }
+.card-new  .card-btn    { background: rgba(70,227,183,.08); border-color: rgba(70,227,183,.25); color: #46e3b7; }
+.card-new:hover         { border-color: rgba(70,227,183,.4); }
 </style>
 </head>
 <body>
@@ -315,6 +319,30 @@ nav {
   DMMMSU-SLUC &nbsp;·&nbsp;
   <span style="color:var(--muted)">Prof. Haydee D. Limson</span>
 </div>
+
+<a class="guide-card card-new" href="ReactMigrationGuide.html">
+  <div class="card-banner">
+    <div class="card-icon">⚛</div>
+  </div>
+  <div class="card-body">
+    <div class="card-tag">GUIDE 3 · 8 Steps</div>
+    <div class="card-title">React Hooks Deep Dive</div>
+    <div class="card-desc">
+      Learn useState, useEffect, and custom hooks
+      with hands-on examples and exercises.
+    </div>
+    <div class="card-steps">
+      <span class="step-chip">useState</span>
+      <span class="step-chip">useEffect</span>
+      <span class="step-chip">Custom Hooks</span>
+    </div>
+    <div class="card-btn">
+      Open Guide 3 <span>→</span>
+    </div>
+  </div>
+</a>
+
+
 
 </body>
 </html>

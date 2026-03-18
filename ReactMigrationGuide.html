@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CSAE 104 · HTML→React Migration Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B3A5C;
+    --navy-dark: #0f2236;
+    --teal: #007B7F;
+    --teal-light: #00a5ab;
+    --gold: #E8A020;
+    --cream: #F7F4EE;
+    --white: #ffffff;
+    --gray-100: #f0eff0;
+    --gray-200: #e2e0e4;
+    --gray-500: #7a7580;
+    --gray-700: #3d3940;
+    --step-colors: #007B7F, #2563EB, #7C3AED, #D97706, #059669, #DC2626;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Lora', serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --radius: 8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--gray-700);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--navy);
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 20px,
+      rgba(255,255,255,0.02) 20px,
+      rgba(255,255,255,0.02) 40px
+    );
+  }
+  .header-inner {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 1rem;
+  }
+  .header-badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal-light);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .header-badge::before {
+    content: '';
+    display: inline-block;
+    width: 28px;
+    height: 2px;
+    background: var(--teal-light);
+  }
+  h1.header-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: white;
+  }
+  h1.header-title span { color: var(--teal-light); }
+  .header-subtitle {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.65);
+    margin-top: 0.5rem;
+  }
+  .header-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
+  }
+  .pill {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    letter-spacing: 0.05em;
+  }
+  .header-meta {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.8;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-wrap {
+    background: var(--navy-dark);
+    padding: 0.75rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .progress-bar-wrap::-webkit-scrollbar { display: none; }
+  .progress-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .step-dots {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+  .step-dot {
+    width: 32px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.15);
+    cursor: pointer;
+    transition: background 0.25s, width 0.25s;
+  }
+  .step-dot.active { background: var(--teal-light); width: 48px; }
+  .step-dot.done { background: rgba(0,165,171,0.45); }
+  .completion-text {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--teal-light);
+    margin-left: auto;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .main-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2rem;
+    padding: 2rem;
+    align-items: start;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: sticky;
+    top: 1.5rem;
+  }
+  .sidebar-nav {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .sidebar-section-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    padding: 0.9rem 1rem 0.5rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: background 0.15s;
+    border-left: 3px solid transparent;
+    font-size: 0.82rem;
+    color: var(--gray-700);
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+  .nav-item:hover { background: var(--gray-100); }
+  .nav-item.active {
+    background: #E8F6F7;
+    border-left-color: var(--teal);
+    color: var(--teal);
+  }
+  .nav-item.done { color: var(--gray-500); }
+  .nav-step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    background: var(--gray-200);
+    color: var(--gray-500);
+    transition: background 0.2s, color 0.2s;
+  }
+  .nav-item.active .nav-step-num { background: var(--teal); color: white; }
+  .nav-item.done .nav-step-num { background: #d1fae5; color: #065f46; }
+  .nav-check { font-size: 0.75rem; }
+
+  .sidebar-extras {
+    margin-top: 1rem;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    padding: 1rem;
+    font-size: 0.8rem;
+  }
+  .sidebar-extras h4 {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 0.6rem;
+  }
+  .sidebar-extras a {
+    display: block;
+    color: var(--teal);
+    text-decoration: none;
+    margin-bottom: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .sidebar-extras a:hover { text-decoration: underline; }
+
+  /* ── STEP PANELS ── */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--gray-200);
+  }
+  .step-number-big {
+    font-family: var(--font-display);
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--gray-200);
+    flex-shrink: 0;
+  }
+  .step-info h2 {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 0.25rem;
+  }
+  .concept-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #EEF2FF;
+    color: #4338CA;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 100px;
+    margin-bottom: 0.5rem;
+  }
+  .time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #FFF7ED;
+    color: #C2410C;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 100px;
+    margin-left: 0.5rem;
+  }
+
+  .step-body { line-height: 1.8; }
+  .step-body p { margin-bottom: 1rem; font-size: 0.95rem; }
+
+  /* Sub-sections */
+  .sub-section {
+    margin: 1.8rem 0;
+  }
+  .sub-section h3 {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sub-section h3::before {
+    content: attr(data-num);
+    background: var(--navy);
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── CODE BLOCKS ── */
+  .code-wrap {
+    background: #0f172a;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 1rem 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+  .code-topbar {
+    background: #1e293b;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .code-dots { display: flex; gap: 0.35rem; }
+  .code-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .code-dot:nth-child(1) { background: #ff5f57; }
+  .code-dot:nth-child(2) { background: #ffbd2e; }
+  .code-dot:nth-child(3) { background: #28c940; }
+  .code-lang {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .copy-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.5);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+  .copy-btn.copied { color: #34d399; border-color: #34d399; }
+  pre {
+    padding: 1.2rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: #e2e8f0;
+    tab-size: 2;
+  }
+  pre .kw { color: #c792ea; }
+  pre .fn { color: #82aaff; }
+  pre .str { color: #c3e88d; }
+  pre .cm { color: #546e7a; font-style: italic; }
+  pre .tag { color: #f07178; }
+  pre .attr { color: #ffcb6b; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin: 1.2rem 0;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+  }
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.05rem; }
+  .callout-body { flex: 1; }
+  .callout-title {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+  .callout.info { background: #EFF6FF; border-left: 3px solid #3B82F6; }
+  .callout.info .callout-title { color: #1d4ed8; }
+  .callout.note { background: #FFFBEB; border-left: 3px solid #F59E0B; }
+  .callout.note .callout-title { color: #B45309; }
+  .callout.task { background: #F0FDF4; border-left: 3px solid #22C55E; }
+  .callout.task .callout-title { color: #15803d; }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.82rem;
+  }
+  .compare-table th {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--gray-200);
+  }
+  .compare-table th:first-child { color: #DC2626; }
+  .compare-table th:last-child { color: #16A34A; }
+  .compare-table td {
+    padding: 0.55rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .compare-table tr:hover td { background: var(--gray-100); }
+
+  /* ── FILE TABLE ── */
+  .file-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.82rem;
+  }
+  .file-table th {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+    background: var(--gray-100);
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .file-table td {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+  .file-table td:first-child {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+  .file-table td:last-child { color: var(--gray-500); font-size: 0.85rem; }
+
+  /* ── FOLDER TREE ── */
+  .folder-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .folder-box {
+    background: #0f172a;
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 2;
+    color: #94a3b8;
+  }
+  .folder-box h4 {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .folder-box.old h4 { color: #f87171; }
+  .folder-box.new h4 { color: #34d399; }
+  .folder-box .dir { color: #fbbf24; }
+  .folder-box .file { color: #94a3b8; }
+
+  /* ── NAV FOOTER ── */
+  .step-nav-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+  }
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--navy);
+    background: none;
+    color: var(--navy);
+    transition: all 0.15s;
+  }
+  .nav-btn:hover { background: var(--navy); color: white; }
+  .nav-btn.primary { background: var(--navy); color: white; }
+  .nav-btn.primary:hover { background: var(--teal); border-color: var(--teal); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-btn:disabled:hover { background: none; color: var(--navy); }
+  .step-indicator {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--gray-500);
+  }
+
+  /* ── SUMMARY PAGE SPECIFICS ── */
+  .cheat-sheet {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .cheat-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 1rem;
+    font-size: 0.82rem;
+  }
+  .cheat-card h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+  }
+  .cheat-card .equiv {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--teal);
+    margin-bottom: 0.4rem;
+  }
+  .cheat-card p { color: var(--gray-500); line-height: 1.5; }
+
+  .rubric-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 1rem 0;
+  }
+  .rubric-table th {
+    background: var(--navy);
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    text-align: left;
+  }
+  .rubric-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    vertical-align: top;
+  }
+  .rubric-table tr:hover td { background: var(--gray-100); }
+  .points-badge {
+    background: var(--navy);
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    display: inline-block;
+  }
+  .points-badge.bonus { background: var(--gold); color: white; }
+
+  .error-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin: 1rem 0;
+  }
+  .error-table th {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+    background: #FEF2F2;
+    color: #991B1B;
+    border-bottom: 1px solid #FECACA;
+  }
+  .error-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+  .error-table td:first-child { font-family: var(--font-mono); font-size: 0.72rem; color: #DC2626; }
+  .error-table td:last-child { color: var(--gray-500); }
+
+  .next-steps-list {
+    counter-reset: steps;
+    list-style: none;
+    margin: 1rem 0;
+  }
+  .next-steps-list li {
+    counter-increment: steps;
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 0.88rem;
+  }
+  .next-steps-list li::before {
+    content: counter(steps);
+    background: var(--teal);
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .folder-grid { grid-template-columns: 1fr; }
+    .header-inner { grid-template-columns: 1fr; }
+    .header-meta { text-align: left; }
+  }
+
+  /* ── INTRO PANEL (step 0) ── */
+  .intro-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .intro-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .intro-card .big-num {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--teal);
+    display: block;
+  }
+  .intro-card span:last-child {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .prereq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.8rem;
+    margin: 1rem 0;
+  }
+  .prereq-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 0.9rem;
+    font-size: 0.82rem;
+  }
+  .prereq-card h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--navy);
+    margin-bottom: 0.15rem;
+  }
+  .prereq-card .version {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--teal);
+  }
+  .prereq-card p { color: var(--gray-500); font-size: 0.78rem; margin-top: 0.2rem; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="header-inner">
+    <div>
+      <div class="header-badge">DMMMSU-SLUC · College of Computer Science · CSAE 104</div>
+      <h1 class="header-title">HTML → <span>React</span><br>Migration Guide</h1>
+      <p class="header-subtitle">A hands-on, progressive activity guide for Third-Year Computer Science Students</p>
+      <div class="header-pills">
+        <span class="pill">6 Steps</span>
+        <span class="pill">5 Pages</span>
+        <span class="pill">Concept-by-Concept</span>
+        <span class="pill">Real Code</span>
+        <span class="pill">Student Tasks</span>
+      </div>
+    </div>
+    <div class="header-meta">
+      Web Programming<br>CSAE 104<br>3rd Year BS Computer Science
+    </div>
+  </div>
+  <div class="progress-bar-wrap">
+    <span class="progress-label">Progress</span>
+    <div class="step-dots" id="stepDots"></div>
+    <span class="completion-text" id="completionText">0 / 7 complete</span>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<div class="main-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Navigation</div>
+      <button class="nav-item active" onclick="goTo(0)" id="nav-0">
+        <span class="nav-step-num">★</span> Overview
+      </button>
+      <button class="nav-item" onclick="goTo(1)" id="nav-1">
+        <span class="nav-step-num">1</span> Create React App
+      </button>
+      <button class="nav-item" onclick="goTo(2)" id="nav-2">
+        <span class="nav-step-num">2</span> Components & JSX
+      </button>
+      <button class="nav-item" onclick="goTo(3)" id="nav-3">
+        <span class="nav-step-num">3</span> Routing
+      </button>
+      <button class="nav-item" onclick="goTo(4)" id="nav-4">
+        <span class="nav-step-num">4</span> useState & Forms
+      </button>
+      <button class="nav-item" onclick="goTo(5)" id="nav-5">
+        <span class="nav-step-num">5</span> CSS Styling
+      </button>
+      <button class="nav-item" onclick="goTo(6)" id="nav-6">
+        <span class="nav-step-num">6</span> Lists & Props
+      </button>
+      <button class="nav-item" onclick="goTo(7)" id="nav-7">
+        <span class="nav-step-num">✓</span> Summary & Rubric
+      </button>
+    </nav>
+    <div class="sidebar-extras">
+      <h4>Resources</h4>
+      <a href="https://react.dev" target="_blank">↗ react.dev</a>
+      <a href="https://reactrouter.com" target="_blank">↗ reactrouter.com</a>
+      <a href="https://vitejs.dev" target="_blank">↗ vitejs.dev</a>
+      <a href="https://scrimba.com/learn/learnreact" target="_blank">↗ Free React Course</a>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main>
+
+    <!-- ── STEP 0: OVERVIEW ── -->
+    <div class="step-panel active" id="panel-0">
+      <div class="step-header">
+        <div class="step-number-big">00</div>
+        <div class="step-info">
+          <h2>Overview & Prerequisites</h2>
+          <p style="font-size:0.9rem;color:var(--gray-500);margin-top:0.4rem;">What you'll build and what you need before starting.</p>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>This guide walks you through migrating a 5-page blog website from plain HTML, CSS, and JavaScript into a modern React application — one step at a time. Each step introduces one new React concept so students build knowledge progressively.</p>
+
+        <div class="intro-grid">
+          <div class="intro-card"><span class="big-num">6</span><span>Progressive Steps</span></div>
+          <div class="intro-card"><span class="big-num">5</span><span>Blog Pages</span></div>
+          <div class="intro-card"><span class="big-num">~4h</span><span>Est. Duration</span></div>
+          <div class="intro-card"><span class="big-num">CRA</span><span>Toolchain</span></div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="▶">Required Software</h3>
+          <div class="prereq-grid">
+            <div class="prereq-card"><h4>Node.js</h4><div class="version">v18 or higher</div><p>nodejs.org → Download LTS</p></div>
+            <div class="prereq-card"><h4>npm</h4><div class="version">Comes with Node.js</div><p>Installed automatically</p></div>
+            <div class="prereq-card"><h4>VS Code</h4><div class="version">Latest</div><p>code.visualstudio.com</p></div>
+            <div class="prereq-card"><h4>Git</h4><div class="version">Any recent</div><p>git-scm.com</p></div>
+            <div class="prereq-card"><h4>Browser</h4><div class="version">Chrome / Firefox</div><p>For React DevTools</p></div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-icon">🧩</div>
+          <div class="callout-body">
+            <div class="callout-title">VS Code Extensions</div>
+            Install: <strong>ES7+ React/Redux Snippets</strong>, <strong>Prettier - Code Formatter</strong>, and <strong>Auto Rename Tag</strong>. These help students write React code faster and with fewer errors.
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="▶">Verify Installation</h3>
+          <p>Have students open a terminal and run:</p>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="cm"># Check Node.js version (should be 18+)</span>
+node --version
+<span class="cm"># Check npm version</span>
+npm --version
+<span class="cm"># Check Git version</span>
+git --version</pre>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="▶">Project Structure: Before & After</h3>
+          <div class="folder-grid">
+            <div class="folder-box old">
+              <h4>❌ Old Structure (Vanilla)</h4>
+              <div>blog-site/</div>
+              <div>├── <span class="file">index.html</span> <span style="color:#64748b">(splash)</span></div>
+              <div>├── <span class="file">home.html</span></div>
+              <div>├── <span class="file">about.html</span></div>
+              <div>├── <span class="file">contact.html</span></div>
+              <div>├── <span class="file">register.html</span></div>
+              <div>├── <span class="file">style.css</span></div>
+              <div>└── <span class="file">script.js</span></div>
+            </div>
+            <div class="folder-box new">
+              <h4>✅ New Structure (React)</h4>
+              <div>react-blog/</div>
+              <div>├── <span class="dir">public/</span></div>
+              <div>│   └── <span class="file">index.html</span></div>
+              <div>├── <span class="dir">src/</span></div>
+              <div>│   ├── <span class="file">App.js</span></div>
+              <div>│   ├── <span class="dir">components/</span></div>
+              <div>│   │   └── <span class="file">Nav.js</span></div>
+              <div>│   └── <span class="dir">pages/</span></div>
+              <div>│       ├── <span class="file">SplashPage.js</span></div>
+              <div>│       ├── <span class="file">HomePage.js</span></div>
+              <div>│       ├── <span class="file">AboutPage.js</span></div>
+              <div>│       ├── <span class="file">ContactPage.js</span></div>
+              <div>│       └── <span class="file">RegisterPage.js</span></div>
+              <div>├── <span class="file">package.json</span></div>
+              <div>└── <span class="file">index.css</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-nav-footer">
+        <button class="nav-btn" disabled>← Previous</button>
+        <span class="step-indicator">Overview · 7 steps ahead</span>
+        <button class="nav-btn primary" onclick="goTo(1)">Step 1: Create React App →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 1 ── -->
+    <div class="step-panel" id="panel-1">
+      <div class="step-header">
+        <div class="step-number-big">01</div>
+        <div class="step-info">
+          <h2>Create Your React App</h2>
+          <span class="concept-badge">💡 npm · project scaffolding · entry point</span>
+          <span class="time-badge">⏱ 20–30 min</span>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>The first step is to create a brand-new React project using <strong>Create React App (CRA)</strong>. CRA is an official tool from the React team that downloads and configures everything automatically — React, a local dev server, and hot-reloading.</p>
+
+        <div class="sub-section">
+          <h3 data-num="1.1">Scaffold the Project</h3>
+          <p>Open a terminal in VS Code (Terminal → New Terminal) and run:</p>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="cm"># Create a new React project using Create React App</span>
+npx create-react-app react-blog
+
+<span class="cm"># Navigate into the project folder</span>
+cd react-blog
+
+<span class="cm"># Start the development server</span>
+npm start</pre>
+          </div>
+          <p>After <code style="font-family:var(--font-mono);background:var(--gray-100);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.85em">npm start</code>, the browser opens at <strong>http://localhost:3000</strong> showing the default React starter page.</p>
+          <div class="callout note"><div class="callout-icon">⚠️</div><div class="callout-body"><div class="callout-title">Note: This may take a few minutes</div>The first run of <code>npx create-react-app</code> downloads several packages. Ensure students have a stable internet connection. The terminal prints <em>"Happy hacking!"</em> when ready.</div></div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="1.2">Understand the Generated Files</h3>
+          <table class="file-table">
+            <tr><th>File</th><th>Purpose</th></tr>
+            <tr><td>public/index.html</td><td>The ONLY HTML file. React mounts itself here. Students rarely edit this.</td></tr>
+            <tr><td>src/index.js</td><td>The JavaScript entry point. Connects React to the HTML page.</td></tr>
+            <tr><td>src/App.js</td><td>The root React component. This is where we start building.</td></tr>
+            <tr><td>src/App.css</td><td>Styles for App.js. We will replace this with our own styles.</td></tr>
+            <tr><td>package.json</td><td>Lists all dependencies and available scripts (start, build, test).</td></tr>
+          </table>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="1.3">Clean Up the Starter Template</h3>
+          <p>Replace <code style="font-family:var(--font-mono);background:var(--gray-100);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.85em">src/App.js</code> with a clean slate:</p>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · src/App.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="cm">// src/App.js</span>
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>My Blog — React Migration<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+
+<span class="kw">export default</span> App;</pre>
+          </div>
+          <div class="callout task"><div class="callout-icon">✏️</div><div class="callout-body"><div class="callout-title">Student Task</div>Have students <em>type</em> (not copy-paste) this code. Saving should instantly update the browser. Ask: <em>What do you see? What changed? Why didn't we need to reload?</em></div></div>
+        </div>
+      </div>
+      <div class="step-nav-footer">
+        <button class="nav-btn" onclick="goTo(0)">← Overview</button>
+        <span class="step-indicator">Step 1 of 6</span>
+        <button class="nav-btn primary" onclick="goTo(2)">Step 2: Components →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 2 ── -->
+    <div class="step-panel" id="panel-2">
+      <div class="step-header">
+        <div class="step-number-big">02</div>
+        <div class="step-info">
+          <h2>Convert HTML Pages to Components</h2>
+          <span class="concept-badge">💡 JSX · React components · HTML→JSX syntax</span>
+          <span class="time-badge">⏱ 45–60 min</span>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>A React component is a JavaScript function that returns HTML-like code called <strong>JSX</strong>. In this step, students convert each of their 5 HTML pages into individual React component files.</p>
+
+        <div class="sub-section">
+          <h3 data-num="2.1">JSX vs HTML — Key Differences</h3>
+          <table class="compare-table">
+            <tr><th>❌ HTML (Old)</th><th>✅ JSX (React)</th></tr>
+            <tr><td>&lt;div class="nav"&gt;</td><td>&lt;div className="nav"&gt;</td></tr>
+            <tr><td>&lt;img src="..." /&gt;</td><td>&lt;img src="..." /&gt; (same!)</td></tr>
+            <tr><td>&lt;label for="email"&gt;</td><td>&lt;label htmlFor="email"&gt;</td></tr>
+            <tr><td>onclick="doThing()"</td><td>onClick={"{doThing}"}</td></tr>
+            <tr><td>style="color: red;"</td><td>style={{ color: "red" }}</td></tr>
+            <tr><td>&lt;!-- comment --&gt;</td><td>{"{/* comment */}"}</td></tr>
+          </table>
+          <div class="callout note"><div class="callout-icon">📝</div><div class="callout-body"><div class="callout-title">Key Rule</div>In JSX, HTML attributes that conflict with JS reserved words are renamed. The most common: <strong>class → className</strong>, <strong>for → htmlFor</strong>, <strong>onclick → onClick</strong>.</div></div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="2.2">Create the Pages Folder</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="cm"># Inside the src/ folder, create a pages directory</span>
+mkdir src/pages
+
+<span class="cm"># Create a file for each page (Windows - VS Code terminal)</span>
+type nul > src/pages/SplashPage.js
+type nul > src/pages/HomePage.js
+type nul > src/pages/AboutPage.js
+type nul > src/pages/ContactPage.js
+type nul > src/pages/RegisterPage.js</pre>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="2.3">Convert the Splash Page</h3>
+          <div class="folder-grid">
+            <div class="folder-box old" style="font-size:0.68rem;line-height:1.7">
+              <h4>❌ Before — splash.html</h4>
+              <div style="color:#94a3b8">&lt;!DOCTYPE html&gt;</div>
+              <div style="color:#94a3b8">&lt;html&gt;&lt;head&gt;</div>
+              <div style="color:#f07178">  &lt;title&gt;My Blog&lt;/title&gt;</div>
+              <div style="color:#f07178">  &lt;link rel="stylesheet" href="style.css"&gt;</div>
+              <div style="color:#94a3b8">&lt;/head&gt;&lt;body&gt;</div>
+              <div>  &lt;div <span style="color:#ffcb6b">class</span>="splash"&gt;</div>
+              <div>    &lt;h1&gt;Welcome to My Blog&lt;/h1&gt;</div>
+              <div>    &lt;p&gt;Stories worth reading.&lt;/p&gt;</div>
+              <div>    &lt;a <span style="color:#f07178">href</span>="home.html" <span style="color:#ffcb6b">class</span>="btn"&gt;</div>
+              <div>      Enter</div>
+              <div>    &lt;/a&gt;</div>
+              <div>  &lt;/div&gt;</div>
+              <div style="color:#94a3b8">&lt;/body&gt;&lt;/html&gt;</div>
+            </div>
+            <div class="folder-box new" style="font-size:0.68rem;line-height:1.7">
+              <h4>✅ After — SplashPage.js</h4>
+              <div><span style="color:#c792ea">function</span> <span style="color:#82aaff">SplashPage</span>() {</div>
+              <div>  <span style="color:#c792ea">return</span> (</div>
+              <div>    &lt;div <span style="color:#34d399">className</span>="splash"&gt;</div>
+              <div>      &lt;h1&gt;Welcome to My Blog&lt;/h1&gt;</div>
+              <div>      &lt;p&gt;Stories worth reading.&lt;/p&gt;</div>
+              <div>      &lt;<span style="color:#34d399">button</span> className="btn"&gt;</div>
+              <div>        Enter</div>
+              <div>      &lt;/button&gt;</div>
+              <div>    &lt;/div&gt;</div>
+              <div>  );</div>
+              <div>}</div>
+              <div><span style="color:#c792ea">export default</span> SplashPage;</div>
+            </div>
+          </div>
+          <div class="callout task"><div class="callout-icon">✏️</div><div class="callout-body"><div class="callout-title">Student Task</div>Convert the remaining pages (Home, About, Contact, Register) following the same pattern. Set a timer — 10 minutes per page. Compare results with a partner when done.</div></div>
+        </div>
+      </div>
+      <div class="step-nav-footer">
+        <button class="nav-btn" onclick="goTo(1)">← Step 1</button>
+        <span class="step-indicator">Step 2 of 6</span>
+        <button class="nav-btn primary" onclick="goTo(3)">Step 3: Routing →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3 ── -->
+    <div class="step-panel" id="panel-3">
+      <div class="step-header">
+        <div class="step-number-big">03</div>
+        <div class="step-info">
+          <h2>Add Routing Between Pages</h2>
+          <span class="concept-badge">💡 React Router · BrowserRouter · Routes · Link · useNavigate</span>
+          <span class="time-badge">⏱ 40–50 min</span>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>In vanilla HTML, navigation loads a new HTML file. In React there is only <strong>ONE HTML file</strong> — React Router intercepts navigation and swaps components in and out without reloading the page.</p>
+
+        <div class="sub-section">
+          <h3 data-num="3.1">Install React Router</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre>npm install react-router-dom</pre>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="3.2">Set Up Routes in App.js</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · src/App.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="cm">// src/App.js</span>
+<span class="kw">import</span> { BrowserRouter, Routes, Route } <span class="kw">from</span> <span class="str">'react-router-dom'</span>;
+<span class="kw">import</span> SplashPage <span class="kw">from</span> <span class="str">'./pages/SplashPage'</span>;
+<span class="kw">import</span> HomePage <span class="kw">from</span> <span class="str">'./pages/HomePage'</span>;
+<span class="kw">import</span> AboutPage <span class="kw">from</span> <span class="str">'./pages/AboutPage'</span>;
+<span class="kw">import</span> ContactPage <span class="kw">from</span> <span class="str">'./pages/ContactPage'</span>;
+<span class="kw">import</span> RegisterPage <span class="kw">from</span> <span class="str">'./pages/RegisterPage'</span>;
+
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;BrowserRouter&gt;</span>
+      <span class="tag">&lt;Routes&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">'/'</span>         <span class="attr">element</span>={<span class="tag">&lt;SplashPage /&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">'/home'</span>     <span class="attr">element</span>={<span class="tag">&lt;HomePage /&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">'/about'</span>    <span class="attr">element</span>={<span class="tag">&lt;AboutPage /&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">'/contact'</span>  <span class="attr">element</span>={<span class="tag">&lt;ContactPage /&gt;</span>} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">'/register'</span> <span class="attr">element</span>={<span class="tag">&lt;RegisterPage /&gt;</span>} <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/Routes&gt;</span>
+    <span class="tag">&lt;/BrowserRouter&gt;</span>
+  );
+}
+<span class="kw">export default</span> App;</pre>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="3.3">Add Navigation Links</h3>
+          <p>Replace all <code style="font-family:var(--font-mono);background:var(--gray-100);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.85em">&lt;a href="home.html"&gt;</code> links with React Router's <code style="font-family:var(--font-mono);background:var(--gray-100);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.85em">&lt;Link to="/home"&gt;</code>:</p>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · SplashPage.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">import</span> { Link } <span class="kw">from</span> <span class="str">'react-router-dom'</span>;
+
+<span class="kw">function</span> <span class="fn">SplashPage</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">'splash'</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>Welcome to My Blog<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;p&gt;</span>Stories worth reading.<span class="tag">&lt;/p&gt;</span>
+      <span class="cm">{/* Use &lt;Link&gt; instead of &lt;a href&gt; */}</span>
+      <span class="tag">&lt;Link</span> <span class="attr">to</span>=<span class="str">'/home'</span> <span class="attr">className</span>=<span class="str">'btn'</span><span class="tag">&gt;</span>
+        Enter
+      <span class="tag">&lt;/Link&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+          </div>
+          <div class="callout note"><div class="callout-icon">⚠️</div><div class="callout-body"><div class="callout-title">Why not use &lt;a href&gt;?</div>A regular <code>&lt;a href&gt;</code> causes a full page reload, losing React's state and defeating the purpose of a Single Page Application. <code>&lt;Link&gt;</code> handles navigation without reloading.</div></div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="3.4">Create the Shared Navigation Component</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · src/components/Nav.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">import</span> { Link, useLocation } <span class="kw">from</span> <span class="str">'react-router-dom'</span>;
+
+<span class="kw">function</span> <span class="fn">Nav</span>() {
+  <span class="kw">const</span> location = <span class="fn">useLocation</span>();
+  <span class="kw">const</span> links = [
+    { path: <span class="str">'/home'</span>,     label: <span class="str">'Home'</span>    },
+    { path: <span class="str">'/about'</span>,    label: <span class="str">'About'</span>   },
+    { path: <span class="str">'/contact'</span>,  label: <span class="str">'Contact'</span> },
+    { path: <span class="str">'/register'</span>, label: <span class="str">'Join'</span>    },
+  ];
+  <span class="kw">return</span> (
+    <span class="tag">&lt;nav</span> <span class="attr">className</span>=<span class="str">'navbar'</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;Link</span> <span class="attr">to</span>=<span class="str">'/'</span> <span class="attr">className</span>=<span class="str">'logo'</span><span class="tag">&gt;</span>MyBlog<span class="tag">&lt;/Link&gt;</span>
+      <span class="tag">&lt;ul&gt;</span>
+        {links.<span class="fn">map</span>(link <span class="kw">=&gt;</span> (
+          <span class="tag">&lt;li</span> <span class="attr">key</span>={link.path}<span class="tag">&gt;</span>
+            <span class="tag">&lt;Link</span>
+              <span class="attr">to</span>={link.path}
+              <span class="attr">className</span>={location.pathname === link.path ? <span class="str">'active'</span> : <span class="str">''</span>}
+            <span class="tag">&gt;</span>
+              {link.label}
+            <span class="tag">&lt;/Link&gt;</span>
+          <span class="tag">&lt;/li&gt;</span>
+        ))}
+      <span class="tag">&lt;/ul&gt;</span>
+    <span class="tag">&lt;/nav&gt;</span>
+  );
+}
+<span class="kw">export default</span> Nav;</pre>
+          </div>
+          <div class="callout task"><div class="callout-icon">✏️</div><div class="callout-body"><div class="callout-title">Student Discussion</div>Why do we put Nav in a separate file? What happens if we copy Nav code into every page? This leads to discussing the <strong>DRY principle</strong> — Don't Repeat Yourself.</div></div>
+        </div>
+      </div>
+      <div class="step-nav-footer">
+        <button class="nav-btn" onclick="goTo(2)">← Step 2</button>
+        <span class="step-indicator">Step 3 of 6</span>
+        <button class="nav-btn primary" onclick="goTo(4)">Step 4: useState →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4 ── -->
+    <div class="step-panel" id="panel-4">
+      <div class="step-header">
+        <div class="step-number-big">04</div>
+        <div class="step-info">
+          <h2>Add State with useState</h2>
+          <span class="concept-badge">💡 React hooks · useState · form inputs · conditional rendering</span>
+          <span class="time-badge">⏱ 45–60 min</span>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>In vanilla JS you'd use <code style="font-family:var(--font-mono);background:var(--gray-100);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.85em">document.getElementById('input').value</code> to read form values. In React, we use the <strong>useState hook</strong> to track values and keep the UI in sync automatically.</p>
+
+        <div class="sub-section">
+          <h3 data-num="4.1">The useState Hook Explained</h3>
+          <p>Start with a simple counter before jumping into forms:</p>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · Counter example</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">function</span> <span class="fn">Counter</span>() {
+  <span class="cm">// ↓ current value   ↓ function to change it</span>
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(0); <span class="cm">// ← starting value</span>
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;p&gt;</span>Count: {count}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={() <span class="kw">=&gt;</span> <span class="fn">setCount</span>(count + 1)}<span class="tag">&gt;</span>
+        Add 1
+      <span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+          </div>
+          <div class="callout note"><div class="callout-icon">⚠️</div><div class="callout-body"><div class="callout-title">Key Rule</div>Never modify state directly. Always use the setter function (e.g., <code>setCount</code>). React only re-renders the component when you use the setter.</div></div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="4.2">Controlled Form Inputs</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · src/pages/ContactPage.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">function</span> <span class="fn">ContactPage</span>() {
+  <span class="kw">const</span> [formData, setFormData] = <span class="fn">useState</span>({
+    name: <span class="str">''</span>, email: <span class="str">''</span>, message: <span class="str">''</span>,
+  });
+
+  <span class="cm">// Single handler for ALL fields</span>
+  <span class="kw">const</span> <span class="fn">handleChange</span> = (e) <span class="kw">=&gt;</span> {
+    <span class="fn">setFormData</span>({
+      ...formData,             <span class="cm">// keep existing values</span>
+      [e.target.name]: e.target.value, <span class="cm">// update changed field</span>
+    });
+  };
+
+  <span class="kw">const</span> <span class="fn">handleSubmit</span> = () <span class="kw">=&gt;</span> {
+    console.<span class="fn">log</span>(<span class="str">'Form submitted:'</span>, formData);
+    <span class="fn">alert</span>(`Thanks, ${formData.name}! Message received.`);
+  };
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">'contact-page'</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>Contact Us<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">'text'</span>  <span class="attr">name</span>=<span class="str">'name'</span>    <span class="attr">value</span>={formData.name}
+             <span class="attr">onChange</span>={handleChange} <span class="attr">placeholder</span>=<span class="str">'Your Name'</span>  <span class="tag">/&gt;</span>
+      <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">'email'</span> <span class="attr">name</span>=<span class="str">'email'</span>   <span class="attr">value</span>={formData.email}
+             <span class="attr">onChange</span>={handleChange} <span class="attr">placeholder</span>=<span class="str">'Your Email'</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;textarea</span> <span class="attr">name</span>=<span class="str">'message'</span> <span class="attr">value</span>={formData.message}
+                <span class="attr">onChange</span>={handleChange} <span class="attr">placeholder</span>=<span class="str">'Your message...'</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;button</span> <span class="attr">onClick</span>={handleSubmit}<span class="tag">&gt;</span>Send Message<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+<span class="kw">export default</span> ContactPage;</pre>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="4.3">Conditional Rendering (Success State)</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · success state pattern</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">const</span> [submitted, setSubmitted] = <span class="fn">useState</span>(<span class="kw">false</span>);
+<span class="kw">const</span> <span class="fn">handleSubmit</span> = () <span class="kw">=&gt;</span> { <span class="fn">setSubmitted</span>(<span class="kw">true</span>); };
+
+<span class="cm">// In the JSX:</span>
+<span class="kw">return</span> (
+  <span class="tag">&lt;div&gt;</span>
+    {submitted ? (
+      <span class="tag">&lt;p&gt;</span>Thank you! We will get back to you soon.<span class="tag">&lt;/p&gt;</span>
+    ) : (
+      <span class="tag">&lt;form&gt;</span>...your form here...<span class="tag">&lt;/form&gt;</span>
+    )}
+  <span class="tag">&lt;/div&gt;</span>
+);</pre>
+          </div>
+          <div class="callout task"><div class="callout-icon">✏️</div><div class="callout-body"><div class="callout-title">Student Task</div>Add form state and a submitted success state to both the <strong>Contact AND Registration</strong> pages. <strong>Bonus:</strong> Add basic validation — show an error if the email field is empty when the user clicks submit.</div></div>
+        </div>
+      </div>
+      <div class="step-nav-footer">
+        <button class="nav-btn" onclick="goTo(3)">← Step 3</button>
+        <span class="step-indicator">Step 4 of 6</span>
+        <button class="nav-btn primary" onclick="goTo(5)">Step 5: CSS Styling →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 5 ── -->
+    <div class="step-panel" id="panel-5">
+      <div class="step-header">
+        <div class="step-number-big">05</div>
+        <div class="step-info">
+          <h2>Migrate CSS Styling</h2>
+          <span class="concept-badge">💡 CSS Modules · global styles · inline styles in React</span>
+          <span class="time-badge">⏱ 30–40 min</span>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Students' existing CSS can be reused in React, but there are better, more organized ways. This step shows <strong>three approaches</strong> — from simplest to most professional.</p>
+
+        <div class="sub-section">
+          <h3 data-num="5.1">Option A — Global Stylesheet (Easiest)</h3>
+          <p>Simply import the existing CSS file into <code style="font-family:var(--font-mono);background:var(--gray-100);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.85em">index.js</code>. All classes become available globally:</p>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · src/index.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">import</span> <span class="str">'./index.css'</span>; <span class="cm">// or import './style.css'</span></pre>
+          </div>
+          <div class="callout info"><div class="callout-icon">ℹ️</div><div class="callout-body"><div class="callout-title">Best For</div>Quick migrations where students want to reuse their existing CSS without changes. Good starting point.</div></div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="5.2">Option B — CSS Modules (Recommended)</h3>
+          <p>CSS Modules give each component its own scoped CSS file. Classes from one file won't accidentally affect other components.</p>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">css · src/pages/HomePage.module.css</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre>.container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+.title     { font-size: 2.5rem; color: #1E4D8C; }
+.postCard  { border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px; }</pre>
+          </div>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · src/pages/HomePage.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">import</span> styles <span class="kw">from</span> <span class="str">'./HomePage.module.css'</span>;
+
+<span class="kw">function</span> <span class="fn">HomePage</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>={styles.container}<span class="tag">&gt;</span>
+      <span class="tag">&lt;h1</span> <span class="attr">className</span>={styles.title}<span class="tag">&gt;</span>Latest Posts<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>={styles.postCard}<span class="tag">&gt;</span>Post 1<span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+          </div>
+          <div class="callout info"><div class="callout-icon">ℹ️</div><div class="callout-body"><div class="callout-title">Why Use CSS Modules?</div>In large projects, two developers might use the same class name (e.g., both use <code>.title</code>). CSS Modules automatically rename classes to be unique so styles from one component never bleed into another.</div></div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="5.3">Option C — Inline Styles (For Dynamic Styles)</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · dynamic inline styles</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="cm">// style takes a JS object — property names use camelCase</span>
+<span class="kw">function</span> <span class="fn">PostCard</span>({ isActive }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">style</span>={{
+      border: <span class="str">'1px solid #ddd'</span>,
+      padding: <span class="str">'1.5rem'</span>,
+      backgroundColor: isActive ? <span class="str">'#E8F4FD'</span> : <span class="str">'white'</span>,
+      transition: <span class="str">'background-color 0.3s'</span>,
+    }}<span class="tag">&gt;</span>
+      Post content here
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</pre>
+          </div>
+        </div>
+      </div>
+      <div class="step-nav-footer">
+        <button class="nav-btn" onclick="goTo(4)">← Step 4</button>
+        <span class="step-indicator">Step 5 of 6</span>
+        <button class="nav-btn primary" onclick="goTo(6)">Step 6: Lists & Props →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 6 ── -->
+    <div class="step-panel" id="panel-6">
+      <div class="step-header">
+        <div class="step-number-big">06</div>
+        <div class="step-info">
+          <h2>Rendering Lists & Blog Posts</h2>
+          <span class="concept-badge">💡 .map() · props · component reuse · key prop</span>
+          <span class="time-badge">⏱ 40–50 min</span>
+        </div>
+      </div>
+      <div class="step-body">
+        <p>Instead of writing 10 blog post cards manually in HTML, write one <code style="font-family:var(--font-mono);background:var(--gray-100);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.85em">PostCard</code> component and let React repeat it for each item in your data array.</p>
+
+        <div class="sub-section">
+          <h3 data-num="6.1">Create a Data Array</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">js · src/data/posts.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">const</span> posts = [
+  {
+    id: 1,
+    title: <span class="str">'Getting Started with React'</span>,
+    excerpt: <span class="str">'React is a JavaScript library for building UIs...'</span>,
+    date: <span class="str">'Feb 28, 2025'</span>,
+    tag: <span class="str">'Technology'</span>,
+    readTime: <span class="str">'5 min'</span>,
+  },
+  {
+    id: 2,
+    title: <span class="str">'Why CSS Still Matters'</span>,
+    excerpt: <span class="str">'In a world of utility frameworks, understanding core CSS...'</span>,
+    date: <span class="str">'Feb 15, 2025'</span>,
+    tag: <span class="str">'Design'</span>,
+    readTime: <span class="str">'4 min'</span>,
+  },
+  <span class="cm">// Add more posts here...</span>
+];
+
+<span class="kw">export default</span> posts;</pre>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="6.2">Create a Reusable PostCard Component</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · src/components/PostCard.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">function</span> <span class="fn">PostCard</span>({ title, excerpt, date, tag, readTime }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">'post-card'</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;span</span> <span class="attr">className</span>=<span class="str">'tag'</span><span class="tag">&gt;</span>{tag}<span class="tag">&lt;/span&gt;</span>
+      <span class="tag">&lt;h2&gt;</span>{title}<span class="tag">&lt;/h2&gt;</span>
+      <span class="tag">&lt;p&gt;</span>{excerpt}<span class="tag">&lt;/p&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">'meta'</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;span&gt;</span>{date}<span class="tag">&lt;/span&gt;</span>
+        <span class="tag">&lt;span&gt;</span>{readTime} read<span class="tag">&lt;/span&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+<span class="kw">export default</span> PostCard;</pre>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="6.3">Render the List in HomePage</h3>
+          <div class="code-wrap">
+            <div class="code-topbar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-lang">jsx · src/pages/HomePage.js</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><span class="kw">import</span> posts <span class="kw">from</span> <span class="str">'../data/posts'</span>;
+<span class="kw">import</span> PostCard <span class="kw">from</span> <span class="str">'../components/PostCard'</span>;
+
+<span class="kw">function</span> <span class="fn">HomePage</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">'home-page'</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>Latest Posts<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">'posts-grid'</span><span class="tag">&gt;</span>
+        <span class="cm">{/* .map() loops through array and returns JSX for each item */}</span>
+        {posts.<span class="fn">map</span>(post <span class="kw">=&gt;</span> (
+          <span class="tag">&lt;PostCard</span>
+            <span class="attr">key</span>={post.id}        <span class="cm">{/* REQUIRED: unique identifier */}</span>
+            <span class="attr">title</span>={post.title}
+            <span class="attr">excerpt</span>={post.excerpt}
+            <span class="attr">date</span>={post.date}
+            <span class="attr">tag</span>={post.tag}
+            <span class="attr">readTime</span>={post.readTime}
+          <span class="tag">/&gt;</span>
+        ))}
+      <span class="tag">&lt;/div&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}
+<span class="kw">export default</span> HomePage;</pre>
+          </div>
+          <div class="callout note"><div class="callout-icon">⚠️</div><div class="callout-body"><div class="callout-title">The key Prop is Required</div>When rendering a list with <code>.map()</code>, every item needs a unique <code>key</code> prop. Use the item's unique ID (<code>key={"{post.id}"}</code>), never the index (<code>key={"{i}"}</code>) if the list can change order.</div></div>
+          <div class="callout task"><div class="callout-icon">✏️</div><div class="callout-body"><div class="callout-title">Student Task</div>Add 5 of your own blog post entries to <code>posts.js</code>. Change PostCard styles using CSS. <strong>Bonus:</strong> Add a <code>featured</code> boolean to the first post and render it larger using conditional className logic.</div></div>
+        </div>
+      </div>
+      <div class="step-nav-footer">
+        <button class="nav-btn" onclick="goTo(5)">← Step 5</button>
+        <span class="step-indicator">Step 6 of 6</span>
+        <button class="nav-btn primary" onclick="goTo(7)">Summary & Rubric →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 7: SUMMARY ── -->
+    <div class="step-panel" id="panel-7">
+      <div class="step-header">
+        <div class="step-number-big">✓</div>
+        <div class="step-info">
+          <h2>Summary, Rubric & Next Steps</h2>
+          <p style="font-size:0.9rem;color:var(--gray-500);margin-top:0.4rem;">Quick reference, common errors, grading guide, and what to build next.</p>
+        </div>
+      </div>
+      <div class="step-body">
+
+        <div class="sub-section">
+          <h3 data-num="▶">Concept Cheat Sheet</h3>
+          <div class="cheat-sheet">
+            <div class="cheat-card"><h4>Component</h4><div class="equiv">≈ Separate .html file</div><p>One per page or reusable UI block</p></div>
+            <div class="cheat-card"><h4>JSX</h4><div class="equiv">≈ HTML inside .html files</div><p>Describing what the UI looks like</p></div>
+            <div class="cheat-card"><h4>useState</h4><div class="equiv">≈ querySelector + variables</div><p>Any value that can change over time</p></div>
+            <div class="cheat-card"><h4>Props</h4><div class="equiv">≈ URL params / hidden inputs</div><p>Sending data from parent to child</p></div>
+            <div class="cheat-card"><h4>.map()</h4><div class="equiv">≈ for loop + innerHTML</div><p>Rendering a list of items from an array</p></div>
+            <div class="cheat-card"><h4>React Router</h4><div class="equiv">≈ Links to separate HTML files</div><p>Navigating without reload</p></div>
+            <div class="cheat-card"><h4>CSS Modules</h4><div class="equiv">≈ CSS files linked in &lt;head&gt;</div><p>Scoped styles per component</p></div>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="▶">Common Error Messages & Fixes</h3>
+          <table class="error-table">
+            <tr><th>Error Message</th><th>Most Likely Fix</th></tr>
+            <tr><td>Each child in a list should have a unique "key" prop</td><td>Add <code>key={"{item.id}"}</code> to your .map() return element</td></tr>
+            <tr><td>Cannot read properties of undefined</td><td>Variable is undefined — check your import path or state initialization</td></tr>
+            <tr><td>JSX expressions must have one parent element</td><td>Wrap multiple elements in a <code>&lt;div&gt;</code> or empty <code>&lt;&gt;&lt;/&gt;</code> fragment</td></tr>
+            <tr><td>Module not found: can't resolve './MyComponent'</td><td>Check file name and path — React imports are case-sensitive</td></tr>
+            <tr><td>React Hook "useState" cannot be called inside a loop</td><td>Move useState calls to the top of the component, never inside loops or ifs</td></tr>
+          </table>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="▶">Grading Rubric</h3>
+          <table class="rubric-table">
+            <tr><th>Criteria</th><th>Points</th><th>Description</th></tr>
+            <tr><td>All 5 pages converted to React components</td><td><span class="points-badge">20</span></td><td>Each page renders without error</td></tr>
+            <tr><td>React Router navigation working</td><td><span class="points-badge">20</span></td><td>All nav links work, no full page reloads</td></tr>
+            <tr><td>useState used correctly in forms</td><td><span class="points-badge">20</span></td><td>Contact & Register forms use controlled inputs</td></tr>
+            <tr><td>PostCard rendered using .map()</td><td><span class="points-badge">15</span></td><td>At least 3 posts rendered dynamically</td></tr>
+            <tr><td>CSS properly applied (any method)</td><td><span class="points-badge">10</span></td><td>Styling matches original design intention</td></tr>
+            <tr><td>Code is clean and well-commented</td><td><span class="points-badge">10</span></td><td>Readable code with at least 5 meaningful comments</td></tr>
+            <tr><td>Bonus: Form validation with error messages</td><td><span class="points-badge bonus">+5</span></td><td>Shows error text when fields are empty or invalid</td></tr>
+          </table>
+        </div>
+
+        <div class="sub-section">
+          <h3 data-num="▶">Recommended Next Steps</h3>
+          <ol class="next-steps-list">
+            <li>Deploy the app to <strong>Vercel or Netlify</strong> (free, takes 5 minutes from GitHub)</li>
+            <li>Connect a real API or use <strong>json-server</strong> to simulate a backend for blog posts</li>
+            <li>Add <strong>useEffect</strong> to fetch posts from an API when the page loads</li>
+            <li>Add a <strong>search bar</strong> that filters blog posts using useState</li>
+            <li>Add <strong>dark mode</strong> using a context provider (introduces useContext hook)</li>
+            <li>Protect the Register page with a simple <strong>authentication check</strong></li>
+          </ol>
+        </div>
+
+        <div class="callout info"><div class="callout-icon">📚</div><div class="callout-body"><div class="callout-title">Additional Resources</div><strong>React Official Docs:</strong> react.dev &nbsp;·&nbsp; <strong>React Router:</strong> reactrouter.com &nbsp;·&nbsp; <strong>Vite:</strong> vitejs.dev &nbsp;·&nbsp; <strong>Free Course:</strong> scrimba.com/learn/learnreact</div></div>
+      </div>
+      <div class="step-nav-footer">
+        <button class="nav-btn" onclick="goTo(6)">← Step 6</button>
+        <span class="step-indicator">🎉 All steps complete!</span>
+        <button class="nav-btn primary" onclick="goTo(0)">↑ Back to Start</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const TOTAL = 8; // panels 0-7
+  let visited = new Set([0]);
+  let current = 0;
+
+  function buildDots() {
+    const container = document.getElementById('stepDots');
+    container.innerHTML = '';
+    for (let i = 0; i < TOTAL; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'step-dot' + (i === current ? ' active' : '') + (i < current ? ' done' : '');
+      dot.title = ['Overview','Step 1','Step 2','Step 3','Step 4','Step 5','Step 6','Summary'][i];
+      dot.onclick = () => goTo(i);
+      container.appendChild(dot);
+    }
+    const pct = Math.round((visited.size / TOTAL) * 100);
+    document.getElementById('completionText').textContent = `${visited.size} / ${TOTAL} visited`;
+  }
+
+  function goTo(n) {
+    // hide current
+    document.getElementById('panel-' + current).classList.remove('active');
+    document.getElementById('nav-' + current).classList.remove('active');
+    // mark done
+    if (current !== n) {
+      document.getElementById('nav-' + current).classList.add('done');
+    }
+    // show new
+    current = n;
+    visited.add(n);
+    document.getElementById('panel-' + n).classList.add('active');
+    const navEl = document.getElementById('nav-' + n);
+    navEl.classList.add('active');
+    navEl.classList.remove('done');
+    // update dots
+    buildDots();
+    // scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    // Get plain text, stripping any HTML tags
+    const text = pre.innerText || pre.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // init
+  buildDots();
+</script>
+</body>
+</html>
